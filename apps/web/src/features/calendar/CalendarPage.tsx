@@ -1,22 +1,16 @@
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AvatarStack } from "../../components/AvatarStack";
-import { calendarAssignments, currentViewer, users } from "../../lib/mock-data";
+import { calendarAssignments } from "../../lib/mock-data";
+import { useAuth } from "../auth/AuthProvider";
 import { ContentSheet } from "./ContentSheet";
 
 const weekDays = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 export function CalendarPage() {
+  const { visibleUsers } = useAuth();
   const [selectedDate, setSelectedDate] = useState("2026-07-01");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  const visibleUsers = useMemo(() => {
-    if (currentViewer.role === "admin") {
-      return users;
-    }
-
-    return users.filter((user) => user.id === currentViewer.id);
-  }, []);
 
   const days = useMemo(() => {
     return Array.from({ length: 35 }, (_, index) => {
@@ -89,4 +83,3 @@ export function CalendarPage() {
     </section>
   );
 }
-

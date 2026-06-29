@@ -1,12 +1,14 @@
 import { CalendarDays, FileCheck2, RotateCcw } from "lucide-react";
-import { currentViewer } from "../lib/mock-data";
+import type { ReactNode } from "react";
+import { useAuth } from "../features/auth/AuthProvider";
 
 type AppShellProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export function AppShell({ children }: AppShellProps) {
-  const isAdmin = currentViewer.role === "admin";
+  const { viewer, users, setViewerId } = useAuth();
+  const isAdmin = viewer.role === "admin";
 
   return (
     <div className="app-shell">
@@ -33,10 +35,24 @@ export function AppShell({ children }: AppShellProps) {
             </a>
           )}
         </nav>
+
+        <div className="viewer-panel">
+          <label htmlFor="viewer-select">Mock login</label>
+          <select
+            id="viewer-select"
+            value={viewer.id}
+            onChange={(event) => setViewerId(event.target.value)}
+          >
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+        </div>
       </aside>
 
       <main className="main-content">{children}</main>
     </div>
   );
 }
-

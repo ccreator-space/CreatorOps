@@ -51,4 +51,3 @@ export function ContentSheet({ isOpen, selectedDate, onClose }: ContentSheetProp
     </div>
   );
 }
-

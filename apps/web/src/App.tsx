@@ -1,11 +1,13 @@
 import { AppShell } from "./components/AppShell";
+import { AuthProvider } from "./features/auth/AuthProvider";
 import { CalendarPage } from "./features/calendar/CalendarPage";
 
 export function App() {
   return (
-    <AppShell>
-      <CalendarPage />
-    </AppShell>
+    <AuthProvider>
+      <AppShell>
+        <CalendarPage />
+      </AppShell>
+    </AuthProvider>
   );
 }
-

@@ -1,3 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-shipin-ink: #172026;
+  --color-shipin-muted: #52605a;
+  --color-shipin-surface: #ffffff;
+  --color-shipin-canvas: #f7f8f6;
+  --color-shipin-line: #dfe4df;
+  --color-shipin-primary: #1f6f5b;
+}
+
 :root {
   color: #172026;
   background: #f7f8f6;
@@ -73,6 +84,30 @@ textarea {
 .nav-link:hover {
   background: #eef2ee;
   color: #172026;
+}
+
+.viewer-panel {
+  border-top: 1px solid #dfe4df;
+  display: grid;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 18px;
+}
+
+.viewer-panel label {
+  color: #69766e;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.viewer-panel select {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  min-height: 38px;
+  padding: 0 10px;
+  width: 100%;
 }
 
 .main-content {
@@ -309,4 +344,3 @@ textarea {
     overflow-x: auto;
   }
 }
-

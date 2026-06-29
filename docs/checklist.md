@@ -7,7 +7,9 @@
 - [x] Express API klasörü oluşturuldu
 - [x] PostgreSQL/Prisma paket klasörü oluşturuldu
 - [x] Docker Compose PostgreSQL servisi eklendi
+- [x] Docker Compose pgAdmin servisi eklendi
 - [x] Örnek environment dosyası eklendi
+- [x] Tailwind CSS 4 Vite entegrasyonu eklendi
 
 ## Frontend
 
@@ -15,6 +17,9 @@
 - [x] Takvim sayfası başlangıç görünümü eklendi
 - [x] Avatar alanı eklendi
 - [x] Yeni ekle sheet formu eklendi
+- [x] Faz 1 mock login selector eklendi
+- [x] Faz 1 role göre sidebar görünürlüğü eklendi
+- [x] Faz 1 role göre avatar listesi filtrelendi
 - [ ] Gerçek drag and drop davranışı
 - [ ] API bağlantıları
 - [ ] Admin içerikler sayfasını route'a bağlama
@@ -26,6 +31,8 @@
 - [x] Health endpoint eklendi
 - [x] Users endpoint başlangıcı eklendi
 - [x] Posts endpoint başlangıcı eklendi
+- [x] Faz 1 geçici kullanıcı context middleware eklendi
+- [x] Faz 1 role göre users/posts filtreleme eklendi
 - [ ] Prisma bağlantısını gerçek servislerde kullanma
 - [ ] Auth middleware
 - [ ] Role-based access control
@@ -37,6 +44,8 @@
 - [x] CalendarAssignment modeli eklendi
 - [x] SocialPost modeli eklendi
 - [x] ReviewEvent modeli eklendi
+- [x] pgAdmin lokal kullanım rehberi eklendi
+- [x] Örnek kullanıcı seed SQL'i eklendi
 - [ ] İlk migration oluşturma
 - [ ] Seed script
 
@@ -50,4 +59,3 @@
 - [ ] Admin revize isteyebilecek
 - [ ] Kullanıcı revize edilen içeriği düzenleyebilecek
 - [ ] Kullanıcı içeriği tekrar onaya gönderebilecek
-

@@ -18,6 +18,7 @@ Amaç: Admin ve normal kullanıcı deneyimini ayıracak temel yetki modelini kur
 - Geçici/mock login veya basit auth ekranı
 - API tarafında role göre veri filtreleme
 - Frontend route ve sidebar görünürlüğü
+- pgAdmin ile lokal veritabanı inceleme akışı
 
 ## Faz 2 - Takvim ve avatar planlama
 
@@ -72,4 +73,3 @@ Amaç: İlk kullanılabilir sürümü güvenilir hale getirmek.
 - Temel testler
 - Seed data
 - Deployment hazırlığı
-
