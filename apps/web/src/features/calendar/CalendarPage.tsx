@@ -1,16 +1,78 @@
 import { Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { AvatarStack } from "../../components/AvatarStack";
-import { calendarAssignments } from "../../lib/mock-data";
+import { type UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
 import { ContentSheet } from "./ContentSheet";
 
 const weekDays = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+
+type CalendarAssignment = {
+  id: string;
+  date: string;
+  user: UserSummary;
+};
+
+type AssignmentsResponse = {
+  data: CalendarAssignment[];
+};
+
+type AssignmentResponse = {
+  data: CalendarAssignment;
+};
+
+type SheetDefaults = {
+  date?: string;
+  userId?: string;
+};
 
 export function CalendarPage() {
-  const { visibleUsers } = useAuth();
-  const [selectedDate, setSelectedDate] = useState("2026-07-01");
+  const { viewer, visibleUsers } = useAuth();
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [assignments, setAssignments] = useState<CalendarAssignment[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
+  const [statusMessage, setStatusMessage] = useState("Takvim atamaları yükleniyor.");
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadAssignments() {
+      setStatusMessage("Takvim atamaları yükleniyor.");
+
+      try {
+        const response = await fetch(`${apiUrl}/assignments?month=2026-07`, {
+          headers: {
+            "x-user-id": viewer.id
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Takvim atamaları alınamadı.");
+        }
+
+        const payload = (await response.json()) as AssignmentsResponse;
+
+        if (isCurrent) {
+          setAssignments(payload.data);
+          setStatusMessage("");
+        }
+      } catch {
+        if (isCurrent) {
+          setAssignments([]);
+          setStatusMessage("Takvim atamaları API'den alınamadı.");
+        }
+      }
+    }
+
+    void loadAssignments();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [viewer.id]);
 
   const days = useMemo(() => {
     return Array.from({ length: 35 }, (_, index) => {
@@ -20,10 +82,72 @@ export function CalendarPage() {
       return {
         day,
         date,
-        assignments: calendarAssignments.filter((item) => item.date === date)
+        assignments: assignments.filter((item) => item.date === date)
       };
     });
-  }, []);
+  }, [assignments]);
+
+  const handleDrop = async (event: DragEvent<HTMLButtonElement>, date: string) => {
+    event.preventDefault();
+
+    const userId =
+      event.dataTransfer.getData("application/x-shipin-user-id") ||
+      event.dataTransfer.getData("text/plain");
+
+    if (!userId || isSavingAssignment) {
+      return;
+    }
+
+    setSelectedDate(date);
+    setIsSavingAssignment(true);
+    setStatusMessage("Atama kaydediliyor.");
+
+    try {
+      const response = await fetch(`${apiUrl}/assignments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": viewer.id
+        },
+        body: JSON.stringify({
+          date,
+          userId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Atama kaydedilemedi.");
+      }
+
+      const payload = (await response.json()) as AssignmentResponse;
+
+      setAssignments((currentAssignments) => {
+        const withoutDuplicate = currentAssignments.filter(
+          (assignment) =>
+            !(assignment.date === payload.data.date && assignment.user.id === payload.data.user.id)
+        );
+
+        return [...withoutDuplicate, payload.data];
+      });
+      setStatusMessage("Atama kaydedildi.");
+      setSheetDefaults({
+        date,
+        userId
+      });
+      setIsSheetOpen(true);
+    } catch {
+      setStatusMessage("Atama kaydedilemedi.");
+    } finally {
+      setIsSavingAssignment(false);
+    }
+  };
+
+  const openNewContentSheet = () => {
+    setSheetDefaults({
+      date: selectedDate ?? undefined
+    });
+    setIsSheetOpen(true);
+  };
 
   return (
     <section className="calendar-page">
@@ -38,13 +162,15 @@ export function CalendarPage() {
           <button
             className="primary-button"
             type="button"
-            onClick={() => setIsSheetOpen(true)}
+            onClick={openNewContentSheet}
           >
             <Plus size={18} />
             Yeni ekle
           </button>
         </div>
       </header>
+
+      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
 
       <div className="calendar-grid" role="grid" aria-label="İçerik takvimi">
         {weekDays.map((day) => (
@@ -58,6 +184,8 @@ export function CalendarPage() {
             className={`calendar-cell ${selectedDate === day.date ? "is-selected" : ""}`}
             key={day.date}
             type="button"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => handleDrop(event, day.date)}
             onClick={() => setSelectedDate(day.date)}
           >
             <span className="day-number">{day.day}</span>
@@ -66,7 +194,7 @@ export function CalendarPage() {
                 <img
                   alt={assignment.user.name}
                   key={assignment.id}
-                  src={assignment.user.avatarUrl}
+                  src={assignment.user.avatarUrl ?? ""}
                   title={assignment.user.name}
                 />
               ))}
@@ -77,8 +205,13 @@ export function CalendarPage() {
 
       <ContentSheet
         isOpen={isSheetOpen}
-        selectedDate={selectedDate}
+        viewerId={viewer.id}
+        users={visibleUsers}
+        initialDate={sheetDefaults.date}
+        initialUserId={sheetDefaults.userId}
         onClose={() => setIsSheetOpen(false)}
+        onSaved={() => undefined}
+        onStatusChange={setStatusMessage}
       />
     </section>
   );

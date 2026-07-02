@@ -17,11 +17,14 @@
 - [x] Takvim sayfası başlangıç görünümü eklendi
 - [x] Avatar alanı eklendi
 - [x] Yeni ekle sheet formu eklendi
+- [x] Sheet formuna tarih ve kullanıcı seçimi eklendi
+- [x] Drag/drop sonrası sheet tarih ve kullanıcı dolu açılıyor
+- [x] Seçili gün sonrası yeni ekle sheet'i tarih dolu açılıyor
 - [x] Faz 1 mock login selector eklendi
 - [x] Faz 1 role göre sidebar görünürlüğü eklendi
 - [x] Faz 1 role göre avatar listesi filtrelendi
-- [ ] Gerçek drag and drop davranışı
-- [ ] API bağlantıları
+- [x] Gerçek drag and drop davranışı
+- [x] Takvim atamaları için API bağlantıları
 - [ ] Admin içerikler sayfasını route'a bağlama
 - [ ] Kullanıcı revizeler sayfasını route'a bağlama
 
@@ -33,7 +36,10 @@
 - [x] Posts endpoint başlangıcı eklendi
 - [x] Faz 1 geçici kullanıcı context middleware eklendi
 - [x] Faz 1 role göre users/posts filtreleme eklendi
-- [ ] Prisma bağlantısını gerçek servislerde kullanma
+- [x] Takvim atamaları endpointleri eklendi
+- [x] Takvim atamaları için Prisma bağlantısı kullanıldı
+- [x] Posts servisinde Prisma bağlantısı kullanıldı
+- [ ] Users servisinde Prisma bağlantısını kullanma
 - [ ] Auth middleware
 - [ ] Role-based access control
 - [ ] Review action endpointleri
@@ -46,14 +52,16 @@
 - [x] ReviewEvent modeli eklendi
 - [x] pgAdmin lokal kullanım rehberi eklendi
 - [x] Örnek kullanıcı seed SQL'i eklendi
-- [ ] İlk migration oluşturma
+- [x] İlk migration oluşturma
 - [ ] Seed script
 
 ## Planlanan akışlar
 
-- [ ] Admin tüm avatarları takvime sürükleyebilecek
-- [ ] Kullanıcı sadece kendi avatarını takvime sürükleyebilecek
-- [ ] Seçili güne içerik oluşturulabilecek
+- [x] Admin tüm avatarları takvime sürükleyebilecek
+- [x] Kullanıcı sadece kendi avatarını takvime sürükleyebilecek
+- [x] Takvim atamaları PostgreSQL'e kaydedilebilecek
+- [x] Seçili güne içerik oluşturulabilecek
+- [x] İçerik pending_review durumuyla PostgreSQL'e kaydedilebilecek
 - [ ] Admin içeriği approve edebilecek
 - [ ] Admin içeriği reject edebilecek
 - [ ] Admin revize isteyebilecek

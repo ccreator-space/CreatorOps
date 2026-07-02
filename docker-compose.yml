@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: shipin
       POSTGRES_DB: shipin_social
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     container_name: shipin-social-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@shipin.local
+      PGADMIN_DEFAULT_EMAIL: admin@shipinapp.com
       PGADMIN_DEFAULT_PASSWORD: shipin
     ports:
       - "5050:80"

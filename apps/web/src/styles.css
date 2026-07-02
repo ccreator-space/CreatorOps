@@ -142,6 +142,12 @@ textarea {
   gap: 14px;
 }
 
+.status-message {
+  color: #52605a;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
 .avatar-stack {
   display: flex;
 }
@@ -229,6 +235,10 @@ textarea {
   min-height: 112px;
   padding: 12px;
   text-align: left;
+}
+
+.calendar-cell:hover {
+  background: #fbfcfb;
 }
 
 .calendar-cell.is-selected {

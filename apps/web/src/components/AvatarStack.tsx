@@ -1,3 +1,4 @@
+import type { DragEvent } from "react";
 import type { UserSummary } from "../lib/mock-data";
 
 type AvatarStackProps = {
@@ -5,6 +6,12 @@ type AvatarStackProps = {
 };
 
 export function AvatarStack({ users }: AvatarStackProps) {
+  const handleDragStart = (event: DragEvent<HTMLButtonElement>, userId: string) => {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData("application/x-shipin-user-id", userId);
+    event.dataTransfer.setData("text/plain", userId);
+  };
+
   return (
     <div className="avatar-stack" aria-label="Kayıtlı kullanıcılar">
       {users.map((user) => (
@@ -12,6 +19,7 @@ export function AvatarStack({ users }: AvatarStackProps) {
           className="avatar-button"
           draggable
           key={user.id}
+          onDragStart={(event) => handleDragStart(event, user.id)}
           title={user.name}
           type="button"
         >

@@ -12,12 +12,12 @@ docker compose up -d postgres pgadmin
 
 Bu iki servis açılır:
 
-- PostgreSQL: `localhost:5432`
+- PostgreSQL: `localhost:5433`
 - pgAdmin: `http://localhost:5050`
 
 pgAdmin girişi:
 
-- Email: `admin@shipin.local`
+- Email: `admin@shipinapp.com`
 - Password: `shipin`
 
 ## 2. pgAdmin içinde server ekle
@@ -36,7 +36,7 @@ pgAdmin ilk açıldığında solda `Servers` alanına sağ tıkla:
    - Save password: açık
 4. `Save`
 
-Not: Projedeki Docker pgAdmin servisini kullanırken host `postgres` olmalı. Bilgisayarına kurulu pgAdmin Desktop kullanıyorsan host `localhost` olmalı.
+Not: Projedeki Docker pgAdmin servisini kullanırken host `postgres`, port `5432` olmalı. Bilgisayarına kurulu pgAdmin Desktop kullanıyorsan host `localhost`, port `5433` olmalı.
 
 ## 3. Tabloları oluştur
 
