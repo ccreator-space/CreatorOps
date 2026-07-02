@@ -103,3 +103,20 @@ Amaç: İçerik sahibinin kendi gönderilerini takvim dışında da yönetebilme
 - Mevcut medya koruma, silme ve yeni medya ekleme
 - Takvimde gerçek postları gösterme
 - Aynı gün aynı kullanıcıdan çoklu post görünümü
+
+## Faz 9 - Topluluk başvuru formları
+
+Amaç: Admin panele erişemeyen topluluk üyelerinin seri başvurularını public form üzerinden göndermesini sağlamak.
+
+- Login gerektirmeyen public submission sayfası
+- Builder Spotlight formu
+- Project Highlight formu
+- README kitap önerisi formu
+- Fotoğraf/PDF upload ve preview
+- Submission ve SubmissionAttachment modelleri
+- Seri bazlı kullanıcı atamaları
+- Admin için tüm başvuruları görme
+- Normal kullanıcı için atanmış seri başvurularını görme
+- Başvuru detay modalı
+- Başvuru status yönetimi
+- Admin için seri atama ekranı

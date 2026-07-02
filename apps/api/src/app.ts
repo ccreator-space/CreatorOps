@@ -7,6 +7,8 @@ import { assignmentsRouter } from "./routes/assignments.routes.js";
 import { authPublicRouter, authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
+import { publicSubmissionsRouter } from "./routes/public-submissions.routes.js";
+import { submissionAssignmentsRouter, submissionsRouter } from "./routes/submissions.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import { uploadsDirectory } from "./services/uploads.js";
 
@@ -23,11 +25,14 @@ export function createApp() {
 
   app.use("/health", healthRouter);
   app.use("/auth", authPublicRouter);
+  app.use("/public/submissions", publicSubmissionsRouter);
   app.use(currentUserMiddleware);
   app.use("/auth", authRouter);
   app.use("/assignments", assignmentsRouter);
   app.use("/users", usersRouter);
   app.use("/posts", postsRouter);
+  app.use("/submissions", submissionsRouter);
+  app.use("/submission-series-assignments", submissionAssignmentsRouter);
   app.use(errorHandler);
 
   return app;

@@ -1,4 +1,4 @@
-import { CalendarDays, FileCheck2, LogOut, RotateCcw } from "lucide-react";
+import { CalendarDays, ClipboardList, FileCheck2, LogOut, Route, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "../features/auth/AuthProvider";
@@ -7,7 +7,7 @@ const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 type AppShellProps = {
   children: ReactNode;
-  currentView: "calendar" | "contents" | "revisions";
+  currentView: "calendar" | "contents" | "revisions" | "submissions" | "series-assignments";
 };
 
 type PostsCountResponse = {
@@ -89,6 +89,22 @@ export function AppShell({ children, currentView }: AppShellProps) {
               <RotateCcw size={18} />
               <span>Revizeler</span>
               {revisionCount > 0 ? <span className="nav-badge">{revisionCount}</span> : null}
+            </a>
+          ) : null}
+          <a
+            className={`nav-link ${currentView === "submissions" ? "is-active" : ""}`}
+            href="#submissions"
+          >
+            <ClipboardList size={18} />
+            Başvurular
+          </a>
+          {isAdmin ? (
+            <a
+              className={`nav-link ${currentView === "series-assignments" ? "is-active" : ""}`}
+              href="#series-assignments"
+            >
+              <Route size={18} />
+              Seri Atamaları
             </a>
           ) : null}
         </nav>

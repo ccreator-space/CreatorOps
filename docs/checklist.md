@@ -104,6 +104,23 @@
 - [x] Takvim gerçek postları ay filtresiyle çekiyor
 - [x] Aynı kullanıcı aynı gün birden fazla post attığında çoklu post görünümü gösteriliyor
 
+## Topluluk başvuru formları
+
+- [x] Submission modelleri eklendi
+- [x] Submission migration uygulandı
+- [x] Public submission endpointi eklendi
+- [x] Builder Spotlight formu eklendi
+- [x] Project Highlight formu eklendi
+- [x] README kitap önerisi formu eklendi
+- [x] Public formda görsel/PDF upload ve preview eklendi
+- [x] Başvurular panel sayfası eklendi
+- [x] Admin tüm başvuruları görebiliyor
+- [x] Normal kullanıcı atanmış seri başvurularını görebiliyor
+- [x] Başvuru detay modalı eklendi
+- [x] Başvuru status güncelleme eklendi
+- [x] Admin için tekil başvuru atama eklendi
+- [x] Admin için seri atama ekranı eklendi
+
 ## Planlanan akışlar
 
 - [x] Admin tüm avatarları takvime sürükleyebilecek

@@ -7,13 +7,22 @@ import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
 import { useAuth } from "./features/auth/AuthProvider";
 import { RevisionsPage } from "./features/revisions/RevisionsPage";
+import { PublicSubmissionPage } from "./features/submissions/PublicSubmissionPage";
+import { SeriesAssignmentsPage } from "./features/submissions/SeriesAssignmentsPage";
+import { SubmissionsPage } from "./features/submissions/SubmissionsPage";
 
-type AppView = "calendar" | "contents" | "revisions";
+type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series-assignments" | "submit";
 
 function getHashView(): AppView {
   const hash = window.location.hash.replace("#", "");
 
-  if (hash === "contents" || hash === "revisions") {
+  if (
+    hash === "contents" ||
+    hash === "revisions" ||
+    hash === "submissions" ||
+    hash === "series-assignments" ||
+    hash === "submit"
+  ) {
     return hash;
   }
 
@@ -39,7 +48,15 @@ function AppContent() {
     if (currentView === "revisions" && viewer.role === "admin") {
       window.location.hash = "calendar";
     }
+
+    if (currentView === "series-assignments" && viewer.role !== "admin") {
+      window.location.hash = "submissions";
+    }
   }, [currentView, viewer]);
+
+  if (currentView === "submit") {
+    return <PublicSubmissionPage />;
+  }
 
   if (!isAuthReady) {
     return (
@@ -56,6 +73,10 @@ function AppContent() {
   const visibleView =
     currentView === "contents"
       ? "contents"
+      : currentView === "submissions"
+        ? "submissions"
+      : currentView === "series-assignments" && viewer.role === "admin"
+        ? "series-assignments"
       : currentView === "revisions" && viewer.role !== "admin"
         ? "revisions"
         : "calendar";
@@ -64,6 +85,10 @@ function AppContent() {
     <AppShell currentView={visibleView}>
       {visibleView === "contents" ? (
         <ContentListPage />
+      ) : visibleView === "submissions" ? (
+        <SubmissionsPage />
+      ) : visibleView === "series-assignments" ? (
+        <SeriesAssignmentsPage />
       ) : visibleView === "revisions" ? (
         <RevisionsPage />
       ) : (

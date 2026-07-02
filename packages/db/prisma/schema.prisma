@@ -30,6 +30,21 @@ enum AttachmentType {
   pdf
 }
 
+enum SubmissionType {
+  builder_spotlight
+  project_highlight
+  readme_book
+}
+
+enum SubmissionStatus {
+  new
+  assigned
+  in_progress
+  approved
+  rejected
+  archived
+}
+
 model User {
   id           String               @id @default(cuid())
   name         String
@@ -38,10 +53,12 @@ model User {
   role         UserRole             @default(user)
   avatarUrl    String?
   assignments  CalendarAssignment[]
-  posts        SocialPost[]         @relation("PostAuthor")
-  reviewEvents ReviewEvent[]        @relation("ReviewActor")
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
+  posts        SocialPost[]                  @relation("PostAuthor")
+  reviewEvents ReviewEvent[]                 @relation("ReviewActor")
+  assignedSubmissions Submission[]           @relation("SubmissionAssignee")
+  seriesAssignments SubmissionSeriesAssignment[]
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
 }
 
 model CalendarAssignment {
@@ -112,4 +129,58 @@ model ReviewEvent {
 
   @@index([postId])
   @@index([actorId])
+}
+
+model Submission {
+  id                  String                 @id @default(cuid())
+  type                SubmissionType
+  status              SubmissionStatus       @default(new)
+  submitterFirstName  String
+  submitterLastName   String
+  submitterEmail      String
+  submitterLinkedin   String
+  note                String?
+  payload             Json
+  assignedToId        String?
+  assignedTo          User?                  @relation("SubmissionAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  attachments         SubmissionAttachment[]
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdAt])
+}
+
+model SubmissionAttachment {
+  id                  String         @id @default(cuid())
+  submissionId        String
+  type                AttachmentType
+  originalName        String
+  mimeType            String
+  sizeBytes           Int
+  compressedSizeBytes Int?
+  width               Int?
+  height              Int?
+  storagePath         String
+  publicUrl           String
+  sortOrder           Int            @default(0)
+  submission          Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  createdAt           DateTime       @default(now())
+
+  @@index([submissionId])
+}
+
+model SubmissionSeriesAssignment {
+  id         String         @id @default(cuid())
+  seriesType SubmissionType
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([seriesType, userId])
+  @@index([seriesType])
+  @@index([userId])
 }
