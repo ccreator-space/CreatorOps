@@ -1,6 +1,7 @@
 import { prisma, type CalendarAssignment, type User } from "@shipin/db";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { z } from "zod";
+import { serializeUser } from "../services/auth.js";
 
 export const assignmentsRouter = Router();
 
@@ -38,7 +39,7 @@ function serializeAssignment(assignment: AssignmentWithUser) {
   return {
     id: assignment.id,
     date: toDateOnly(assignment.date),
-    user: assignment.user
+    user: serializeUser(assignment.user)
   };
 }
 

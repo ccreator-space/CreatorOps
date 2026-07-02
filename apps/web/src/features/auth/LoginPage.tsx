@@ -1,17 +1,35 @@
 import { LogIn } from "lucide-react";
+import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "./AuthProvider";
 
 export function LoginPage() {
-  const { users, login } = useAuth();
-  const [selectedUserId, setSelectedUserId] = useState(users[0]?.id ?? "");
+  const { login } = useAuth();
+  const [email, setEmail] = useState("deniz@shipin.local");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (selectedUserId) {
-      login(selectedUserId);
+    if (!email.trim() || !password) {
+      toast.error("E-posta ve şifre zorunlu.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await login({
+        email,
+        password
+      });
+      toast.success("Giriş yapıldı.");
       window.location.hash = "calendar";
+    } catch {
+      toast.error("E-posta veya şifre hatalı.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -24,24 +42,32 @@ export function LoginPage() {
         </div>
 
         <div>
-          <p className="eyebrow">Social media management</p>
           <h1>Giriş yap</h1>
         </div>
 
         <label>
-          Kullanıcı
-          <select value={selectedUserId} onChange={(event) => setSelectedUserId(event.target.value)}>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
+          E-posta
+          <input
+            autoComplete="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            type="email"
+          />
         </label>
 
-        <button className="primary-button is-full" type="submit">
+        <label>
+          Şifre
+          <input
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            type="password"
+          />
+        </label>
+
+        <button className="primary-button is-full" type="submit" disabled={isSubmitting}>
           <LogIn size={18} />
-          Giriş yap
+          {isSubmitting ? "Giriş yapılıyor" : "Giriş yap"}
         </button>
       </form>
     </main>

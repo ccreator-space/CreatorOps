@@ -23,7 +23,7 @@ export function AvatarStack({ users }: AvatarStackProps) {
           title={user.name}
           type="button"
         >
-          <img alt={user.name} src={user.avatarUrl} />
+          <img alt={user.name} src={user.avatarUrl ?? ""} />
         </button>
       ))}
     </div>

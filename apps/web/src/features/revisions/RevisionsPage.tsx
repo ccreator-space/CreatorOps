@@ -30,7 +30,7 @@ const platformLabels: Record<RevisionPost["platform"], string> = {
 };
 
 export function RevisionsPage() {
-  const { viewer } = useAuth();
+  const { authHeaders, viewer } = useAuth();
   const [posts, setPosts] = useState<RevisionPost[]>([]);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
@@ -46,9 +46,7 @@ export function RevisionsPage() {
 
     try {
       const response = await fetch(`${apiUrl}/posts?status=revision_requested`, {
-        headers: {
-          "x-user-id": viewer.id
-        }
+        headers: authHeaders()
       });
 
       if (!response.ok) {
@@ -99,7 +97,7 @@ export function RevisionsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": viewer.id
+          ...authHeaders()
         },
         body: JSON.stringify({
           title: draft.title.trim(),

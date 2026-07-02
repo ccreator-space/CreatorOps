@@ -1,3 +1,4 @@
+import { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { AuthProvider } from "./features/auth/AuthProvider";
@@ -20,7 +21,7 @@ function getHashView(): AppView {
 }
 
 function AppContent() {
-  const { viewer } = useAuth();
+  const { isAuthReady, viewer } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>(getHashView);
 
   useEffect(() => {
@@ -43,6 +44,14 @@ function AppContent() {
       window.location.hash = "calendar";
     }
   }, [currentView, viewer]);
+
+  if (!isAuthReady) {
+    return (
+      <main className="login-page">
+        <p className="status-message">Oturum kontrol ediliyor.</p>
+      </main>
+    );
+  }
 
   if (!viewer) {
     return <LoginPage />;
@@ -70,8 +79,38 @@ function AppContent() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3200,
+          style: {
+            background: "#ffffff",
+            border: "1px solid #dfe4df",
+            borderRadius: "8px",
+            boxShadow: "0 18px 48px rgb(23 32 38 / 12%)",
+            color: "#172026",
+            fontSize: "14px",
+            maxWidth: "420px",
+            padding: "12px 14px"
+          },
+          success: {
+            iconTheme: {
+              primary: "#1f6f5b",
+              secondary: "#ffffff"
+            }
+          },
+          error: {
+            iconTheme: {
+              primary: "#b42318",
+              secondary: "#ffffff"
+            }
+          }
+        }}
+      />
+    </>
   );
 }

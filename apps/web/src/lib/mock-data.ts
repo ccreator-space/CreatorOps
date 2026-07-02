@@ -5,7 +5,7 @@ export type UserSummary = {
   name: string;
   email: string;
   role: UserRole;
-  avatarUrl: string;
+  avatarUrl: string | null;
 };
 
 export const users: UserSummary[] = [

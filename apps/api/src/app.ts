@@ -3,6 +3,7 @@ import express from "express";
 import { currentUserMiddleware } from "./middleware/current-user.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { assignmentsRouter } from "./routes/assignments.routes.js";
+import { authPublicRouter, authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
@@ -18,7 +19,9 @@ export function createApp() {
   app.use(express.json());
 
   app.use("/health", healthRouter);
+  app.use("/auth", authPublicRouter);
   app.use(currentUserMiddleware);
+  app.use("/auth", authRouter);
   app.use("/assignments", assignmentsRouter);
   app.use("/users", usersRouter);
   app.use("/posts", postsRouter);

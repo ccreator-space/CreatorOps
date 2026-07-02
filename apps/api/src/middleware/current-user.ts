@@ -1,18 +1,36 @@
+import { prisma } from "@shipin/db";
 import type { RequestHandler } from "express";
-import { findUserById } from "../services/mock-store.js";
+import { serializeUser, verifyToken } from "../services/auth.js";
 
-export const currentUserMiddleware: RequestHandler = (request, response, next) => {
-  const userIdHeader = request.header("x-user-id");
-  const userId = userIdHeader?.trim() || "user-1";
-  const currentUser = findUserById(userId);
+export const currentUserMiddleware: RequestHandler = async (request, response, next) => {
+  const authorizationHeader = request.header("authorization");
+  const token = authorizationHeader?.startsWith("Bearer ")
+    ? authorizationHeader.slice("Bearer ".length).trim()
+    : "";
+  const payload = token ? verifyToken(token) : null;
 
-  if (!currentUser) {
-    response.status(401).json({ message: "Invalid user context" });
+  if (!payload) {
+    response.status(401).json({ message: "Unauthorized" });
     return;
   }
 
-  response.locals.currentUser = currentUser;
-  next();
+  try {
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        id: payload.sub
+      }
+    });
+
+    if (!currentUser) {
+      response.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+
+    response.locals.currentUser = serializeUser(currentUser);
+    next();
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const requireRole =

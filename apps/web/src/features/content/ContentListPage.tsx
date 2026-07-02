@@ -47,7 +47,7 @@ const platformLabels: Record<AdminPost["platform"], string> = {
 };
 
 export function ContentListPage() {
-  const { viewer } = useAuth();
+  const { authHeaders, viewer } = useAuth();
   const [statusFilter, setStatusFilter] = useState<PostStatus>("pending_review");
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -63,9 +63,7 @@ export function ContentListPage() {
 
     try {
       const response = await fetch(`${apiUrl}/posts?status=${statusFilter}`, {
-        headers: {
-          "x-user-id": viewer.id
-        }
+        headers: authHeaders()
       });
 
       if (!response.ok) {
@@ -105,7 +103,7 @@ export function ContentListPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": viewer.id
+          ...authHeaders()
         },
         body: JSON.stringify({
           action,

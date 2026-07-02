@@ -22,6 +22,7 @@
 - [x] Seçili gün sonrası yeni ekle sheet'i tarih dolu açılıyor
 - [x] Faz 1 mock login selector eklendi
 - [x] Faz 5 basit giriş ekranı eklendi
+- [x] E-posta ve şifre ile gerçek login ekranı eklendi
 - [x] Faz 5 çıkış aksiyonu eklendi
 - [x] Sidebar oturum bilgisine göre güncellendi
 - [x] Faz 1 role göre sidebar görünürlüğü eklendi
@@ -46,8 +47,8 @@
 - [x] Takvim atamaları için Prisma bağlantısı kullanıldı
 - [x] Posts servisinde Prisma bağlantısı kullanıldı
 - [ ] Users servisinde Prisma bağlantısını kullanma
-- [ ] Auth middleware
-- [ ] Role-based access control
+- [x] Bearer token auth middleware
+- [x] Role-based access control
 - [x] Review action endpointleri
 - [x] Review event kaydı
 - [x] Kullanıcı revizyon tekrar gönderme endpointi
@@ -61,7 +62,19 @@
 - [x] pgAdmin lokal kullanım rehberi eklendi
 - [x] Örnek kullanıcı seed SQL'i eklendi
 - [x] İlk migration oluşturma
-- [ ] Seed script
+- [x] Password hash migration
+- [x] Seed script
+
+## Kalite ve ürünleştirme
+
+- [x] Form validasyonları
+- [x] API hata formatı başlangıcı
+- [x] Loading ve empty state'ler
+- [x] Typecheck doğrulaması
+- [x] Seed data
+- [x] Temel testler
+- [x] Production build doğrulaması
+- [x] Deployment hazırlığı
 
 ## Planlanan akışlar
 

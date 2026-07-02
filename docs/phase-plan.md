@@ -58,7 +58,8 @@ Amaç: Onay sorumlusunun içerikleri yönetebilmesini sağlamak.
 Amaç: Normal kullanıcının revize istenen içerikleri düzeltmesini sağlamak.
 
 - Basit giriş ekranı
-- Kullanıcı seçerek giriş yapma
+- E-posta ve şifre ile giriş yapma
+- Token tabanlı korumalı API istekleri
 - Sidebar'da oturum bilgisi ve çıkış aksiyonu
 - Kullanıcı sidebar'da `Revizeler`
 - Revize istenen içerik listesi

@@ -2,6 +2,7 @@ import { prisma, type ReviewEvent, type SocialPost, type User } from "@shipin/db
 import { Router } from "express";
 import { z } from "zod";
 import { requireRole } from "../middleware/current-user.js";
+import { serializeUser } from "../services/auth.js";
 
 export const postsRouter = Router();
 
@@ -53,7 +54,7 @@ function serializePost(post: PostWithAuthor) {
     title: post.title,
     content: post.content,
     status: post.status,
-    author: post.author,
+    author: serializeUser(post.author),
     latestReview: post.reviews?.[0]
   };
 }

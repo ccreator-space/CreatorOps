@@ -28,7 +28,7 @@ type SheetDefaults = {
 };
 
 export function CalendarPage() {
-  const { viewer, visibleUsers } = useAuth();
+  const { authHeaders, viewer, visibleUsers } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<CalendarAssignment[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -41,7 +41,6 @@ export function CalendarPage() {
       return;
     }
 
-    const viewerId = viewer.id;
     let isCurrent = true;
 
     async function loadAssignments() {
@@ -49,9 +48,7 @@ export function CalendarPage() {
 
       try {
         const response = await fetch(`${apiUrl}/assignments?month=2026-07`, {
-          headers: {
-            "x-user-id": viewerId
-          }
+          headers: authHeaders()
         });
 
         if (!response.ok) {
@@ -116,7 +113,7 @@ export function CalendarPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": viewer.id
+          ...authHeaders()
         },
         body: JSON.stringify({
           date,
@@ -218,7 +215,7 @@ export function CalendarPage() {
 
       <ContentSheet
         isOpen={isSheetOpen}
-        viewerId={viewer.id}
+        authHeaders={authHeaders}
         users={visibleUsers}
         initialDate={sheetDefaults.date}
         initialUserId={sheetDefaults.userId}

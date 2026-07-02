@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @shipin/web --filter @shipin/api dev",
     "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
     "db:generate": "pnpm --filter @shipin/db db:generate",
     "db:migrate": "pnpm --filter @shipin/db db:migrate",
+    "db:seed": "pnpm --filter @shipin/db db:seed",
     "db:studio": "pnpm --filter @shipin/db db:studio"
   },
   "devDependencies": {

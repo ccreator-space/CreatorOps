@@ -8,7 +8,7 @@ type Platform = "linkedin" | "instagram";
 
 type ContentSheetProps = {
   isOpen: boolean;
-  viewerId: string;
+  authHeaders: () => Record<string, string>;
   users: UserSummary[];
   initialDate?: string;
   initialUserId?: string;
@@ -35,7 +35,7 @@ const emptyForm: FormState = {
 
 export function ContentSheet({
   isOpen,
-  viewerId,
+  authHeaders,
   users,
   initialDate,
   initialUserId,
@@ -74,7 +74,7 @@ export function ContentSheet({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-user-id": viewerId
+          ...authHeaders()
         },
         body: JSON.stringify({
           scheduledDate: form.scheduledDate,

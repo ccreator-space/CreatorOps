@@ -78,14 +78,23 @@ select id, name, email, role from "User";
 
 Beklenen sonuç: 3 kullanıcı listelenmeli.
 
-## 6. Faz 1'de nasıl ilerliyoruz?
+## 6. Auth akışı
 
-Faz 1 için amacımız önce rol davranışını doğru kurmak:
+Projede giriş ekranı e-posta ve şifre ile çalışır. Seed kullanıcılarının lokal geliştirme şifresi:
+
+```text
+shipin123
+```
+
+Örnek kullanıcılar:
+
+- `deniz@shipin.local`: admin
+- `ece@shipin.local`: user
+- `mert@shipin.local`: user
+
+Giriş başarılı olduğunda frontend token alır ve korumalı API isteklerini `Authorization: Bearer <token>` header'ı ile yapar.
 
 - Admin tüm kullanıcıları görebilir
 - Normal kullanıcı sadece kendini görebilir
 - Admin sidebar'da `İçerikler` sayfasını görebilir
 - Normal kullanıcı sidebar'da `Revizeler` sayfasını görebilir
-- API geçici olarak `x-user-id` header'ı ile kullanıcı seçer
-
-Frontend'deki `Mock login` select'i bu davranışı test etmek içindir. Gerçek login gelince bu select kaldırılacak ve aynı rol mantığı auth sistemiyle çalışacak.
