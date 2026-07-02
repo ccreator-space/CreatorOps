@@ -387,6 +387,110 @@ button:disabled {
   gap: 12px;
 }
 
+.list-table-wrap {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.list-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.list-table th,
+.list-table td {
+  border-bottom: 1px solid #e8ece8;
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.list-table th {
+  background: #eef2ee;
+  color: #52605a;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.list-table td {
+  color: #172026;
+  font-size: 14px;
+}
+
+.list-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.list-table .is-right {
+  text-align: right;
+}
+
+.table-primary {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+}
+
+.table-primary strong {
+  line-height: 1.35;
+}
+
+.table-primary span {
+  color: #69766e;
+  line-height: 1.45;
+  max-width: 520px;
+}
+
+.table-actions {
+  display: inline-flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.table-empty {
+  color: #69766e;
+  height: 96px;
+  text-align: center;
+}
+
+.status-pill {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 26px;
+  padding: 0 10px;
+}
+
+.status-pill.is-pending_review {
+  background: #fff7df;
+  color: #775800;
+}
+
+.status-pill.is-approved {
+  background: #e8f3ee;
+  color: #1f6f5b;
+}
+
+.status-pill.is-rejected {
+  background: #fdecec;
+  color: #a83232;
+}
+
+.status-pill.is-revision_requested {
+  background: #eef2ee;
+  color: #52605a;
+}
+
+.status-pill.is-draft {
+  background: #f1f3f4;
+  color: #52605a;
+}
+
 .list-row {
   align-items: center;
   background: #ffffff;
@@ -462,6 +566,78 @@ button:disabled {
   gap: 8px;
 }
 
+.modal-backdrop {
+  align-items: center;
+  background: rgb(23 32 38 / 22%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: fixed;
+  z-index: 20;
+}
+
+.modal {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgb(23 32 38 / 18%);
+  display: grid;
+  max-height: min(720px, calc(100vh - 48px));
+  max-width: 560px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.modal-header {
+  align-items: center;
+  border-bottom: 1px solid #e8ece8;
+  display: flex;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 0 18px;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.modal-body {
+  overflow-y: auto;
+  padding: 18px;
+}
+
+.modal-footer {
+  align-items: center;
+  border-top: 1px solid #e8ece8;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 18px;
+}
+
+.modal-form {
+  display: grid;
+  gap: 14px;
+}
+
+.modal-form label {
+  color: #52605a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.modal-form input,
+.modal-form textarea {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  padding: 10px 12px;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -483,5 +659,13 @@ button:disabled {
 
   .calendar-grid {
     overflow-x: auto;
+  }
+
+  .list-table-wrap {
+    overflow-x: auto;
+  }
+
+  .list-table {
+    min-width: 760px;
   }
 }

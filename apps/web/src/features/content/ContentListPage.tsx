@@ -1,6 +1,8 @@
 import { Check, MessageSquareText, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { ListPageTemplate, type ListColumn } from "../../components/ListPageTemplate";
+import { Modal } from "../../components/Modal";
 import { useAuth } from "../auth/AuthProvider";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -51,9 +53,10 @@ export function ContentListPage() {
   const { authHeaders, viewer } = useAuth();
   const [statusFilter, setStatusFilter] = useState<PostStatus>("pending_review");
   const [posts, setPosts] = useState<AdminPost[]>([]);
-  const [notes, setNotes] = useState<Record<string, string>>({});
   const [statusMessage, setStatusMessage] = useState("İçerikler yükleniyor.");
   const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [revisionPost, setRevisionPost] = useState<AdminPost | null>(null);
+  const [revisionNote, setRevisionNote] = useState("");
 
   async function loadPosts() {
     if (!viewer) {
@@ -73,7 +76,7 @@ export function ContentListPage() {
 
       const payload = (await response.json()) as PostsResponse;
       setPosts(payload.data);
-      setStatusMessage(payload.data.length ? "" : "Bu filtrede içerik yok.");
+      setStatusMessage("");
     } catch {
       setPosts([]);
       setStatusMessage("İçerikler alınamadı.");
@@ -84,16 +87,8 @@ export function ContentListPage() {
     void loadPosts();
   }, [statusFilter, viewer?.id]);
 
-  const handleReview = async (postId: string, action: ReviewAction) => {
+  const handleReview = async (postId: string, action: ReviewAction, note?: string) => {
     if (!viewer) {
-      return;
-    }
-
-    const note = notes[postId]?.trim();
-
-    if (action === "request_revision" && !note) {
-      toast.error("Revize istemek için not gir.");
-      setStatusMessage("Revize istemek için not gir.");
       return;
     }
 
@@ -117,12 +112,10 @@ export function ContentListPage() {
         throw new Error("İşlem kaydedilemedi.");
       }
 
-      setNotes((currentNotes) => ({
-        ...currentNotes,
-        [postId]: ""
-      }));
       toast.success("İşlem kaydedildi.");
       setStatusMessage("İşlem kaydedildi.");
+      setRevisionPost(null);
+      setRevisionNote("");
       await loadPosts();
     } catch {
       toast.error("İşlem kaydedilemedi.");
@@ -132,61 +125,64 @@ export function ContentListPage() {
     }
   };
 
-  if (!viewer) {
-    return null;
-  }
+  const submitRevisionRequest = () => {
+    if (!revisionPost) {
+      return;
+    }
 
-  return (
-    <section className="list-page">
-      <header className="page-header">
-        <h1>İçerikler</h1>
+    const note = revisionNote.trim();
 
-        <label className="filter-control">
-          Durum
-          <select
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value as PostStatus)}
-          >
-            {Object.entries(statusLabels).map(([status, label]) => (
-              <option key={status} value={status}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </header>
+    if (!note) {
+      toast.error("Revize istemek için not gir.");
+      return;
+    }
 
-      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
+    void handleReview(revisionPost.id, "request_revision", note);
+  };
 
-      {posts.map((post) => (
-        <article className="list-row content-row" key={post.id}>
-          <div className="row-main">
-            <div>
-              <strong>{post.title}</strong>
-              <p>
-                {platformLabels[post.platform]} · {post.scheduledDate} · {post.author.name} ·{" "}
-                {statusLabels[post.status]}
-              </p>
-            </div>
-            <p className="post-content">{post.content}</p>
-            {post.latestReview?.note ? (
-              <p className="review-note">Son not: {post.latestReview.note}</p>
-            ) : null}
-            <textarea
-              className="note-input"
-              placeholder="Revize notu"
-              rows={2}
-              value={notes[post.id] ?? ""}
-              onChange={(event) =>
-                setNotes((currentNotes) => ({
-                  ...currentNotes,
-                  [post.id]: event.target.value
-                }))
-              }
-            />
+  const columns = useMemo<Array<ListColumn<AdminPost>>>(
+    () => [
+      {
+        key: "content",
+        header: "İçerik",
+        render: (post) => (
+          <div className="table-primary">
+            <strong>{post.title}</strong>
+            <span>{post.content}</span>
           </div>
-
-          <div className="row-actions">
+        )
+      },
+      {
+        key: "author",
+        header: "Gönderen",
+        width: "170px",
+        render: (post) => post.author.name
+      },
+      {
+        key: "date",
+        header: "Tarih",
+        width: "130px",
+        render: (post) => post.scheduledDate
+      },
+      {
+        key: "platform",
+        header: "Platform",
+        width: "120px",
+        render: (post) => platformLabels[post.platform]
+      },
+      {
+        key: "status",
+        header: "Durum",
+        width: "150px",
+        render: (post) => <span className={`status-pill is-${post.status}`}>{statusLabels[post.status]}</span>
+      },
+      {
+        key: "actions",
+        header: "",
+        align: "right",
+        width: "132px",
+        render: (post) => (
+          <div className="table-actions">
             <button
               className="icon-button"
               type="button"
@@ -201,7 +197,10 @@ export function ContentListPage() {
               type="button"
               aria-label="Revize iste"
               disabled={activePostId === post.id}
-              onClick={() => handleReview(post.id, "request_revision")}
+              onClick={() => {
+                setRevisionPost(post);
+                setRevisionNote(post.latestReview?.note ?? "");
+              }}
             >
               <MessageSquareText size={18} />
             </button>
@@ -215,8 +214,85 @@ export function ContentListPage() {
               <X size={18} />
             </button>
           </div>
-        </article>
-      ))}
-    </section>
+        )
+      }
+    ],
+    [activePostId]
+  );
+
+  if (!viewer) {
+    return null;
+  }
+
+  return (
+    <>
+      <ListPageTemplate
+        title="İçerikler"
+        actions={
+          <label className="filter-control">
+            Durum
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as PostStatus)}
+            >
+              {Object.entries(statusLabels).map(([status, label]) => (
+                <option key={status} value={status}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+        }
+        columns={columns}
+        rows={posts}
+        getRowId={(post) => post.id}
+        statusMessage={statusMessage}
+        emptyMessage="Bu filtrede içerik yok."
+      />
+
+      {revisionPost ? (
+        <Modal
+          title="Revize iste"
+          onClose={() => {
+            setRevisionPost(null);
+            setRevisionNote("");
+          }}
+          footer={
+            <>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => {
+                  setRevisionPost(null);
+                  setRevisionNote("");
+                }}
+              >
+                Vazgeç
+              </button>
+              <button
+                className="primary-button"
+                type="button"
+                disabled={activePostId === revisionPost.id}
+                onClick={submitRevisionRequest}
+              >
+                Revize iste
+              </button>
+            </>
+          }
+        >
+          <div className="modal-form">
+            <label>
+              Revize notu
+              <textarea
+                rows={5}
+                value={revisionNote}
+                onChange={(event) => setRevisionNote(event.target.value)}
+                placeholder="Kullanıcıdan beklenen değişikliği yaz"
+              />
+            </label>
+          </div>
+        </Modal>
+      ) : null}
+    </>
   );
 }

@@ -1,6 +1,8 @@
 import { Check, Pencil } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { useEffect, useState } from "react";
+import { ListPageTemplate, type ListColumn } from "../../components/ListPageTemplate";
+import { Modal } from "../../components/Modal";
 import { useAuth } from "../auth/AuthProvider";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -33,8 +35,11 @@ const platformLabels: Record<RevisionPost["platform"], string> = {
 export function RevisionsPage() {
   const { authHeaders, viewer } = useAuth();
   const [posts, setPosts] = useState<RevisionPost[]>([]);
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
+  const [editingPost, setEditingPost] = useState<RevisionPost | null>(null);
+  const [draft, setDraft] = useState<DraftState>({
+    title: "",
+    content: ""
+  });
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState("Revizeler yükleniyor.");
 
@@ -56,18 +61,7 @@ export function RevisionsPage() {
 
       const payload = (await response.json()) as PostsResponse;
       setPosts(payload.data);
-      setDrafts(
-        Object.fromEntries(
-          payload.data.map((post) => [
-            post.id,
-            {
-              title: post.title,
-              content: post.content
-            }
-          ])
-        )
-      );
-      setStatusMessage(payload.data.length ? "" : "Revize bekleyen içerik yok.");
+      setStatusMessage("");
     } catch {
       setPosts([]);
       setStatusMessage("Revizeler alınamadı.");
@@ -78,24 +72,38 @@ export function RevisionsPage() {
     void loadRevisions();
   }, [viewer?.id]);
 
-  const handleResubmit = async (postId: string) => {
-    if (!viewer) {
+  const openEditor = (post: RevisionPost) => {
+    setEditingPost(post);
+    setDraft({
+      title: post.title,
+      content: post.content
+    });
+  };
+
+  const closeEditor = () => {
+    setEditingPost(null);
+    setDraft({
+      title: "",
+      content: ""
+    });
+  };
+
+  const handleResubmit = async () => {
+    if (!viewer || !editingPost) {
       return;
     }
 
-    const draft = drafts[postId];
-
-    if (!draft?.title.trim() || !draft.content.trim()) {
+    if (!draft.title.trim() || !draft.content.trim()) {
       toast.error("Başlık ve içerik zorunlu.");
       setStatusMessage("Başlık ve içerik zorunlu.");
       return;
     }
 
-    setActivePostId(postId);
+    setActivePostId(editingPost.id);
     setStatusMessage("Tekrar onaya gönderiliyor.");
 
     try {
-      const response = await fetch(`${apiUrl}/posts/${postId}/resubmit`, {
+      const response = await fetch(`${apiUrl}/posts/${editingPost.id}/resubmit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +120,7 @@ export function RevisionsPage() {
       }
 
       toast.success("İçerik tekrar onaya gönderildi.");
-      setEditingPostId(null);
+      closeEditor();
       setStatusMessage("İçerik tekrar onaya gönderildi.");
       await loadRevisions();
     } catch {
@@ -123,99 +131,121 @@ export function RevisionsPage() {
     }
   };
 
+  const columns = useMemo<Array<ListColumn<RevisionPost>>>(
+    () => [
+      {
+        key: "content",
+        header: "İçerik",
+        render: (post) => (
+          <div className="table-primary">
+            <strong>{post.title}</strong>
+            <span>{post.content}</span>
+          </div>
+        )
+      },
+      {
+        key: "date",
+        header: "Tarih",
+        width: "130px",
+        render: (post) => post.scheduledDate
+      },
+      {
+        key: "platform",
+        header: "Platform",
+        width: "120px",
+        render: (post) => platformLabels[post.platform]
+      },
+      {
+        key: "note",
+        header: "Revize Notu",
+        render: (post) => post.latestReview?.note ?? "-"
+      },
+      {
+        key: "actions",
+        header: "",
+        align: "right",
+        width: "52px",
+        render: (post) => (
+          <button
+            className="icon-button"
+            type="button"
+            aria-label="Düzenle"
+            onClick={() => openEditor(post)}
+          >
+            <Pencil size={18} />
+          </button>
+        )
+      }
+    ],
+    []
+  );
+
   return (
-    <section className="list-page">
-      <header className="page-header">
-        <h1>Revizeler</h1>
-      </header>
+    <>
+      <ListPageTemplate
+        title="Revizeler"
+        columns={columns}
+        rows={posts}
+        getRowId={(post) => post.id}
+        statusMessage={statusMessage}
+        emptyMessage="Revize bekleyen içerik yok."
+      />
 
-      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
+      {editingPost ? (
+        <Modal
+          title="Revizeyi düzenle"
+          onClose={closeEditor}
+          footer={
+            <>
+              <button className="secondary-button" type="button" onClick={closeEditor}>
+                Vazgeç
+              </button>
+              <button
+                className="primary-button"
+                type="button"
+                disabled={activePostId === editingPost.id}
+                onClick={handleResubmit}
+              >
+                <Check size={18} />
+                Onaya gönder
+              </button>
+            </>
+          }
+        >
+          <div className="modal-form">
+            {editingPost.latestReview?.note ? (
+              <p className="review-note">Revize notu: {editingPost.latestReview.note}</p>
+            ) : null}
 
-      {posts.map((post) => {
-        const isEditing = editingPostId === post.id;
-        const draft = drafts[post.id] ?? {
-          title: post.title,
-          content: post.content
-        };
+            <label>
+              Başlık
+              <input
+                value={draft.title}
+                onChange={(event) =>
+                  setDraft((currentDraft) => ({
+                    ...currentDraft,
+                    title: event.target.value
+                  }))
+                }
+              />
+            </label>
 
-        return (
-          <article className="list-row content-row" key={post.id}>
-            <div className="row-main">
-              <div>
-                <strong>{post.title}</strong>
-                <p>
-                  {platformLabels[post.platform]} · {post.scheduledDate} · Revize istendi
-                </p>
-              </div>
-
-              {post.latestReview?.note ? (
-                <p className="review-note">Revize notu: {post.latestReview.note}</p>
-              ) : null}
-
-              {isEditing ? (
-                <div className="revision-editor">
-                  <label>
-                    Başlık
-                    <input
-                      value={draft.title}
-                      onChange={(event) =>
-                        setDrafts((currentDrafts) => ({
-                          ...currentDrafts,
-                          [post.id]: {
-                            ...draft,
-                            title: event.target.value
-                          }
-                        }))
-                      }
-                    />
-                  </label>
-                  <label>
-                    İçerik
-                    <textarea
-                      rows={5}
-                      value={draft.content}
-                      onChange={(event) =>
-                        setDrafts((currentDrafts) => ({
-                          ...currentDrafts,
-                          [post.id]: {
-                            ...draft,
-                            content: event.target.value
-                          }
-                        }))
-                      }
-                    />
-                  </label>
-                </div>
-              ) : (
-                <p className="post-content">{post.content}</p>
-              )}
-            </div>
-
-            <div className="row-actions">
-              {isEditing ? (
-                <button
-                  className="icon-button"
-                  type="button"
-                  aria-label="Tekrar onaya gönder"
-                  disabled={activePostId === post.id}
-                  onClick={() => handleResubmit(post.id)}
-                >
-                  <Check size={18} />
-                </button>
-              ) : (
-                <button
-                  className="icon-button"
-                  type="button"
-                  aria-label="Düzenle"
-                  onClick={() => setEditingPostId(post.id)}
-                >
-                  <Pencil size={18} />
-                </button>
-              )}
-            </div>
-          </article>
-        );
-      })}
-    </section>
+            <label>
+              İçerik
+              <textarea
+                rows={6}
+                value={draft.content}
+                onChange={(event) =>
+                  setDraft((currentDraft) => ({
+                    ...currentDraft,
+                    content: event.target.value
+                  }))
+                }
+              />
+            </label>
+          </div>
+        </Modal>
+      ) : null}
+    </>
   );
 }
