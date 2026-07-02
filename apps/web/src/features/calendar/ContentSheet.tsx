@@ -112,7 +112,6 @@ export function ContentSheet({
       <aside className="sheet" aria-label="Yeni içerik formu">
         <header className="sheet-header">
           <div>
-            <p className="eyebrow">{form.scheduledDate || "Yeni kayıt"}</p>
             <h2>Yeni içerik</h2>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Kapat">

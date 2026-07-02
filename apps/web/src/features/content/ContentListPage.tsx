@@ -139,10 +139,7 @@ export function ContentListPage() {
   return (
     <section className="list-page">
       <header className="page-header">
-        <div>
-          <p className="eyebrow">Admin</p>
-          <h1>İçerikler</h1>
-        </div>
+        <h1>İçerikler</h1>
 
         <label className="filter-control">
           Durum

@@ -165,10 +165,7 @@ export function CalendarPage() {
   return (
     <section className="calendar-page">
       <header className="page-header">
-        <div>
-          <p className="eyebrow">Social media management</p>
-          <h1>Takvim</h1>
-        </div>
+        <h1>Takvim</h1>
 
         <div className="header-actions">
           <AvatarStack users={visibleUsers} />

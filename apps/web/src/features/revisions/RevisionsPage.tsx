@@ -126,10 +126,7 @@ export function RevisionsPage() {
   return (
     <section className="list-page">
       <header className="page-header">
-        <div>
-          <p className="eyebrow">Kullanıcı</p>
-          <h1>Revizeler</h1>
-        </div>
+        <h1>Revizeler</h1>
       </header>
 
       {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
