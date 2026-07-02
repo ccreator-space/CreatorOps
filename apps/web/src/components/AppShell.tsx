@@ -50,9 +50,8 @@ export function AppShell({ children, currentView }: AppShellProps) {
 
         <div className="viewer-panel">
           <div>
-            <span className="viewer-label">Oturum</span>
             <strong>{viewer.name}</strong>
-            <p>{viewer.role === "admin" ? "Admin" : "Kullanıcı"}</p>
+            <p>{viewer.email}</p>
           </div>
           <button className="secondary-button is-full" type="button" onClick={logout}>
             <LogOut size={16} />

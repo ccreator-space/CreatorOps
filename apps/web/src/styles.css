@@ -85,6 +85,8 @@ button:disabled {
 .sidebar {
   border-right: 1px solid #dfe4df;
   background: #ffffff;
+  display: flex;
+  flex-direction: column;
   padding: 24px 16px;
 }
 
@@ -134,24 +136,8 @@ button:disabled {
   border-top: 1px solid #dfe4df;
   display: grid;
   gap: 8px;
-  margin-top: 24px;
+  margin-top: auto;
   padding-top: 18px;
-}
-
-.viewer-panel label {
-  color: #69766e;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.viewer-label {
-  color: #69766e;
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  margin-bottom: 6px;
-  text-transform: uppercase;
 }
 
 .viewer-panel p {
