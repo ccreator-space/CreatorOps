@@ -1,10 +1,13 @@
 import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 
 export function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("deniz@shipin.local");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +28,9 @@ export function LoginPage() {
         password
       });
       toast.success("Giriş yapıldı.");
-      window.location.hash = "calendar";
+      navigate(typeof location.state?.from === "string" ? location.state.from : "/calendar", {
+        replace: true
+      });
     } catch {
       toast.error("E-posta veya şifre hatalı.");
     } finally {

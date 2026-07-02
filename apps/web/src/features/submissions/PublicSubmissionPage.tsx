@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Eye, Send, X } from "lucide-react";
+import { Check, Eye, Send, X } from "lucide-react";
 import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import toast from "react-hot-toast";
 import { MediaCarouselModal, type MediaCarouselItem } from "../../components/MediaCarouselModal";
@@ -6,7 +6,6 @@ import { formatBytes, prepareMediaFile, type PreparedMedia } from "../../lib/med
 import {
   submissionConfigs,
   submissionTypeLabels,
-  submissionTypes,
   type SubmissionType
 } from "./submission-config";
 
@@ -28,8 +27,11 @@ const emptyCommonForm: CommonForm = {
   note: ""
 };
 
-export function PublicSubmissionPage() {
-  const [selectedType, setSelectedType] = useState<SubmissionType>("builder_spotlight");
+type PublicSubmissionPageProps = {
+  initialType: SubmissionType;
+};
+
+export function PublicSubmissionPage({ initialType }: PublicSubmissionPageProps) {
   const [commonForm, setCommonForm] = useState<CommonForm>(emptyCommonForm);
   const [payload, setPayload] = useState<Record<string, string>>({});
   const [media, setMedia] = useState<PreparedMedia[]>([]);
@@ -37,7 +39,7 @@ export function PublicSubmissionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const config = submissionConfigs[selectedType];
+  const config = submissionConfigs[initialType];
 
   const previewItems = useMemo<MediaCarouselItem[]>(
     () =>
@@ -67,19 +69,6 @@ export function PublicSubmissionPage() {
       ...currentPayload,
       [key]: value
     }));
-  };
-
-  const changeType = (type: SubmissionType) => {
-    setSelectedType(type);
-    setPayload({});
-    setMedia((currentMedia) => {
-      currentMedia.forEach((item) => {
-        if (item.previewUrl) {
-          URL.revokeObjectURL(item.previewUrl);
-        }
-      });
-      return [];
-    });
   };
 
   const handleMediaChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +105,21 @@ export function PublicSubmissionPage() {
     });
   };
 
+  const resetForm = () => {
+    setCommonForm(emptyCommonForm);
+    setPayload({});
+    setPreviewIndex(null);
+    setMedia((currentMedia) => {
+      currentMedia.forEach((item) => {
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      return [];
+    });
+    setIsSubmitted(false);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -138,7 +142,7 @@ export function PublicSubmissionPage() {
 
     try {
       const body = new FormData();
-      body.set("type", selectedType);
+      body.set("type", initialType);
       body.set("submitterFirstName", commonForm.submitterFirstName.trim());
       body.set("submitterLastName", commonForm.submitterLastName.trim());
       body.set("submitterEmail", commonForm.submitterEmail.trim());
@@ -179,9 +183,8 @@ export function PublicSubmissionPage() {
           </span>
           <h1>Başvurunu aldık</h1>
           <p>Ekibimiz seri akışına göre başvurunu panelde değerlendirecek.</p>
-          <button className="secondary-button" type="button" onClick={() => window.location.hash = "login"}>
-            <ArrowLeft size={16} />
-            Panele dön
+          <button className="secondary-button" type="button" onClick={resetForm}>
+            Yeni başvuru gönder
           </button>
         </section>
       </main>
@@ -193,27 +196,10 @@ export function PublicSubmissionPage() {
       <section className="public-submit-shell">
         <header className="public-submit-header">
           <div>
-            <h1>Shipin Seri Başvuruları</h1>
-            <p>Builder Spotlight, Project Highlight ve README önerileri için bilgilerini buradan gönder.</p>
+            <h1>{submissionTypeLabels[initialType]}</h1>
+            <p>{config.description}</p>
           </div>
-          <a className="secondary-button" href="#login">
-            Panele giriş
-          </a>
         </header>
-
-        <div className="submission-type-grid">
-          {submissionTypes.map((type) => (
-            <button
-              className={`submission-type-card ${selectedType === type ? "is-active" : ""}`}
-              key={type}
-              type="button"
-              onClick={() => changeType(type)}
-            >
-              <strong>{submissionTypeLabels[type]}</strong>
-              <span>{submissionConfigs[type].description}</span>
-            </button>
-          ))}
-        </div>
 
         <form className="public-submit-form" onSubmit={handleSubmit}>
           <section className="form-section">

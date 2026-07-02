@@ -1,13 +1,16 @@
 import { CalendarDays, ClipboardList, FileCheck2, LogOut, Route, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
+export type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series-assignments";
+
 type AppShellProps = {
   children: ReactNode;
-  currentView: "calendar" | "contents" | "revisions" | "submissions" | "series-assignments";
+  currentView: AppView;
 };
 
 type PostsCountResponse = {
@@ -16,6 +19,7 @@ type PostsCountResponse = {
 
 export function AppShell({ children, currentView }: AppShellProps) {
   const { authHeaders, viewer, logout } = useAuth();
+  const navigate = useNavigate();
   const [revisionCount, setRevisionCount] = useState(0);
 
   useEffect(() => {
@@ -60,6 +64,12 @@ export function AppShell({ children, currentView }: AppShellProps) {
   }
 
   const isAdmin = viewer.role === "admin";
+  const handleLogout = () => {
+    logout();
+    navigate("/login", {
+      replace: true
+    });
+  };
 
   return (
     <div className="app-shell">
@@ -70,42 +80,42 @@ export function AppShell({ children, currentView }: AppShellProps) {
         </div>
 
         <nav className="nav-list">
-          <a className={`nav-link ${currentView === "calendar" ? "is-active" : ""}`} href="#calendar">
+          <NavLink className={`nav-link ${currentView === "calendar" ? "is-active" : ""}`} to="/calendar">
             <CalendarDays size={18} />
             Takvim
-          </a>
-          <a
+          </NavLink>
+          <NavLink
             className={`nav-link ${currentView === "contents" ? "is-active" : ""}`}
-            href="#contents"
+            to="/contents"
           >
             <FileCheck2 size={18} />
             İçerikler
-          </a>
+          </NavLink>
           {!isAdmin ? (
-            <a
+            <NavLink
               className={`nav-link ${currentView === "revisions" ? "is-active" : ""}`}
-              href="#revisions"
+              to="/revisions"
             >
               <RotateCcw size={18} />
               <span>Revizeler</span>
               {revisionCount > 0 ? <span className="nav-badge">{revisionCount}</span> : null}
-            </a>
+            </NavLink>
           ) : null}
-          <a
+          <NavLink
             className={`nav-link ${currentView === "submissions" ? "is-active" : ""}`}
-            href="#submissions"
+            to="/submissions"
           >
             <ClipboardList size={18} />
             Başvurular
-          </a>
+          </NavLink>
           {isAdmin ? (
-            <a
+            <NavLink
               className={`nav-link ${currentView === "series-assignments" ? "is-active" : ""}`}
-              href="#series-assignments"
+              to="/series-assignments"
             >
               <Route size={18} />
               Seri Atamaları
-            </a>
+            </NavLink>
           ) : null}
         </nav>
 
@@ -114,7 +124,7 @@ export function AppShell({ children, currentView }: AppShellProps) {
             <strong>{viewer.name}</strong>
             <p>{viewer.email}</p>
           </div>
-          <button className="secondary-button is-full" type="button" onClick={logout}>
+          <button className="secondary-button is-full" type="button" onClick={handleLogout}>
             <LogOut size={16} />
             Çıkış yap
           </button>

@@ -109,6 +109,9 @@
 - [x] Submission modelleri eklendi
 - [x] Submission migration uygulandı
 - [x] Public submission endpointi eklendi
+- [x] React Router ile hash route yapısı kaldırıldı
+- [x] Public formlar ayrı pathlere taşındı
+- [x] Submit sayfalarından panele giriş butonu kaldırıldı
 - [x] Builder Spotlight formu eklendi
 - [x] Project Highlight formu eklendi
 - [x] README kitap önerisi formu eklendi

@@ -1,62 +1,34 @@
 import { Toaster } from "react-hot-toast";
-import { useEffect, useState } from "react";
-import { AppShell } from "./components/AppShell";
-import { AuthProvider } from "./features/auth/AuthProvider";
+import {
+  BrowserRouter,
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation
+} from "react-router-dom";
+import { AppShell, type AppView } from "./components/AppShell";
+import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
 import { LoginPage } from "./features/auth/LoginPage";
 import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
-import { useAuth } from "./features/auth/AuthProvider";
 import { RevisionsPage } from "./features/revisions/RevisionsPage";
 import { PublicSubmissionPage } from "./features/submissions/PublicSubmissionPage";
 import { SeriesAssignmentsPage } from "./features/submissions/SeriesAssignmentsPage";
 import { SubmissionsPage } from "./features/submissions/SubmissionsPage";
+import type { SubmissionType } from "./features/submissions/submission-config";
 
-type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series-assignments" | "submit";
+const routeViewMap: Record<string, AppView> = {
+  "/calendar": "calendar",
+  "/contents": "contents",
+  "/revisions": "revisions",
+  "/submissions": "submissions",
+  "/series-assignments": "series-assignments"
+};
 
-function getHashView(): AppView {
-  const hash = window.location.hash.replace("#", "");
-
-  if (
-    hash === "contents" ||
-    hash === "revisions" ||
-    hash === "submissions" ||
-    hash === "series-assignments" ||
-    hash === "submit"
-  ) {
-    return hash;
-  }
-
-  return "calendar";
-}
-
-function AppContent() {
+function AuthGate() {
   const { isAuthReady, viewer } = useAuth();
-  const [currentView, setCurrentView] = useState<AppView>(getHashView);
-
-  useEffect(() => {
-    const handleHashChange = () => setCurrentView(getHashView());
-
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
-  }, []);
-
-  useEffect(() => {
-    if (!viewer) {
-      return;
-    }
-
-    if (currentView === "revisions" && viewer.role === "admin") {
-      window.location.hash = "calendar";
-    }
-
-    if (currentView === "series-assignments" && viewer.role !== "admin") {
-      window.location.hash = "submissions";
-    }
-  }, [currentView, viewer]);
-
-  if (currentView === "submit") {
-    return <PublicSubmissionPage />;
-  }
+  const location = useLocation();
 
   if (!isAuthReady) {
     return (
@@ -67,43 +39,96 @@ function AppContent() {
   }
 
   if (!viewer) {
-    return <LoginPage />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  const visibleView =
-    currentView === "contents"
-      ? "contents"
-      : currentView === "submissions"
-        ? "submissions"
-      : currentView === "series-assignments" && viewer.role === "admin"
-        ? "series-assignments"
-      : currentView === "revisions" && viewer.role !== "admin"
-        ? "revisions"
-        : "calendar";
+  return <Outlet />;
+}
+
+function RoleGuard({ role, fallback }: { role: "admin" | "user"; fallback: string }) {
+  const { viewer } = useAuth();
+
+  if (!viewer || viewer.role !== role) {
+    return <Navigate to={fallback} replace />;
+  }
+
+  return <Outlet />;
+}
+
+function GuestOnlyLogin() {
+  const { isAuthReady, viewer } = useAuth();
+
+  if (!isAuthReady) {
+    return (
+      <main className="login-page">
+        <p className="status-message">Oturum kontrol ediliyor.</p>
+      </main>
+    );
+  }
+
+  if (viewer) {
+    return <Navigate to="/calendar" replace />;
+  }
+
+  return <LoginPage />;
+}
+
+function PanelLayout() {
+  const location = useLocation();
+  const currentView = routeViewMap[location.pathname] ?? "calendar";
 
   return (
-    <AppShell currentView={visibleView}>
-      {visibleView === "contents" ? (
-        <ContentListPage />
-      ) : visibleView === "submissions" ? (
-        <SubmissionsPage />
-      ) : visibleView === "series-assignments" ? (
-        <SeriesAssignmentsPage />
-      ) : visibleView === "revisions" ? (
-        <RevisionsPage />
-      ) : (
-        <CalendarPage />
-      )}
+    <AppShell currentView={currentView}>
+      <Outlet />
     </AppShell>
   );
+}
+
+function PublicSubmissionRoute({ type }: { type: SubmissionType }) {
+  return <PublicSubmissionPage initialType={type} />;
 }
 
 export function App() {
   return (
     <>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/submit" element={<Navigate to="/submit/builder-spotlight" replace />} />
+            <Route
+              path="/submit/builder-spotlight"
+              element={<PublicSubmissionRoute type="builder_spotlight" />}
+            />
+            <Route
+              path="/submit/project-highlight"
+              element={<PublicSubmissionRoute type="project_highlight" />}
+            />
+            <Route
+              path="/submit/readme-book"
+              element={<PublicSubmissionRoute type="readme_book" />}
+            />
+
+            <Route path="/login" element={<GuestOnlyLogin />} />
+
+            <Route element={<AuthGate />}>
+              <Route element={<PanelLayout />}>
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/contents" element={<ContentListPage />} />
+                <Route path="/submissions" element={<SubmissionsPage />} />
+                <Route element={<RoleGuard role="user" fallback="/calendar" />}>
+                  <Route path="/revisions" element={<RevisionsPage />} />
+                </Route>
+                <Route element={<RoleGuard role="admin" fallback="/submissions" />}>
+                  <Route path="/series-assignments" element={<SeriesAssignmentsPage />} />
+                </Route>
+              </Route>
+            </Route>
+
+            <Route path="/" element={<Navigate to="/calendar" replace />} />
+            <Route path="*" element={<Navigate to="/calendar" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
       <Toaster
         position="top-right"
         toastOptions={{

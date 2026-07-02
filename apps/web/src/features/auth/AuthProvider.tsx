@@ -55,7 +55,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setToken(null);
     setViewer(null);
     setUsers([]);
-    window.location.hash = "calendar";
   };
 
   async function loadSession(activeToken: string) {

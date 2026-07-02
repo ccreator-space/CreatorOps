@@ -109,6 +109,8 @@ Amaç: İçerik sahibinin kendi gönderilerini takvim dışında da yönetebilme
 Amaç: Admin panele erişemeyen topluluk üyelerinin seri başvurularını public form üzerinden göndermesini sağlamak.
 
 - Login gerektirmeyen public submission sayfası
+- React Router ile gerçek route yapısı
+- Ayrı public form pathleri: `/submit/builder-spotlight`, `/submit/project-highlight`, `/submit/readme-book`
 - Builder Spotlight formu
 - Project Highlight formu
 - README kitap önerisi formu
