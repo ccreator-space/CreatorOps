@@ -2,6 +2,7 @@ import { Check, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { ListPageTemplate, type ListColumn } from "../../components/ListPageTemplate";
+import { MediaCarouselModal } from "../../components/MediaCarouselModal";
 import { Modal } from "../../components/Modal";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -16,6 +17,13 @@ type RevisionPost = {
   latestReview?: {
     note?: string;
   };
+  attachments: Array<{
+    id: string;
+    type: "image" | "pdf";
+    originalName: string;
+    mimeType: string;
+    publicUrl: string;
+  }>;
 };
 
 type PostsResponse = {
@@ -36,6 +44,7 @@ export function RevisionsPage() {
   const { authHeaders, viewer } = useAuth();
   const [posts, setPosts] = useState<RevisionPost[]>([]);
   const [editingPost, setEditingPost] = useState<RevisionPost | null>(null);
+  const [mediaPost, setMediaPost] = useState<RevisionPost | null>(null);
   const [draft, setDraft] = useState<DraftState>({
     title: "",
     content: ""
@@ -156,6 +165,32 @@ export function RevisionsPage() {
         render: (post) => platformLabels[post.platform]
       },
       {
+        key: "media",
+        header: "Medya",
+        width: "130px",
+        render: (post) =>
+          post.attachments.length ? (
+            <button className="media-summary" type="button" onClick={() => setMediaPost(post)}>
+              {post.attachments.slice(0, 3).map((attachment) =>
+                attachment.type === "image" ? (
+                  <img
+                    alt={attachment.originalName}
+                    key={attachment.id}
+                    src={`${apiUrl}${attachment.publicUrl}`}
+                  />
+                ) : (
+                  <span className="media-file-type is-small" key={attachment.id}>
+                    PDF
+                  </span>
+                )
+              )}
+              {post.attachments.length > 3 ? <span className="media-count">+{post.attachments.length - 3}</span> : null}
+            </button>
+          ) : (
+            "-"
+          )
+      },
+      {
         key: "note",
         header: "Revize Notu",
         render: (post) => post.latestReview?.note ?? "-"
@@ -245,6 +280,20 @@ export function RevisionsPage() {
             </label>
           </div>
         </Modal>
+      ) : null}
+
+      {mediaPost ? (
+        <MediaCarouselModal
+          title={mediaPost.title}
+          items={mediaPost.attachments.map((attachment) => ({
+            id: attachment.id,
+            type: attachment.type,
+            originalName: attachment.originalName,
+            mimeType: attachment.mimeType,
+            sourceUrl: `${apiUrl}${attachment.publicUrl}`
+          }))}
+          onClose={() => setMediaPost(null)}
+        />
       ) : null}
     </>
   );

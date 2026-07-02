@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import path from "node:path";
 import { currentUserMiddleware } from "./middleware/current-user.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { assignmentsRouter } from "./routes/assignments.routes.js";
@@ -7,6 +8,7 @@ import { authPublicRouter, authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
+import { uploadsDirectory } from "./services/uploads.js";
 
 export function createApp() {
   const app = express();
@@ -17,6 +19,7 @@ export function createApp() {
     })
   );
   app.use(express.json());
+  app.use("/uploads", express.static(path.resolve(uploadsDirectory)));
 
   app.use("/health", healthRouter);
   app.use("/auth", authPublicRouter);

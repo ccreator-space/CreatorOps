@@ -36,10 +36,6 @@ function AppContent() {
       return;
     }
 
-    if (currentView === "contents" && viewer.role !== "admin") {
-      window.location.hash = "calendar";
-    }
-
     if (currentView === "revisions" && viewer.role === "admin") {
       window.location.hash = "calendar";
     }
@@ -58,7 +54,7 @@ function AppContent() {
   }
 
   const visibleView =
-    currentView === "contents" && viewer.role === "admin"
+    currentView === "contents"
       ? "contents"
       : currentView === "revisions" && viewer.role !== "admin"
         ? "revisions"

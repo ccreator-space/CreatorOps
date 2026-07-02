@@ -1,6 +1,6 @@
-import { Plus } from "lucide-react";
+import { Instagram, Linkedin, Plus } from "lucide-react";
 import toast from "react-hot-toast";
-import { useEffect, useMemo, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
 import { AvatarStack } from "../../components/AvatarStack";
 import { type UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
@@ -15,8 +15,22 @@ type CalendarAssignment = {
   user: UserSummary;
 };
 
+type CalendarPost = {
+  id: string;
+  assigneeId: string;
+  scheduledDate: string;
+  platform: "linkedin" | "instagram";
+  title: string;
+  status: "draft" | "pending_review" | "approved" | "rejected" | "revision_requested";
+  author: UserSummary;
+};
+
 type AssignmentsResponse = {
   data: CalendarAssignment[];
+};
+
+type PostsResponse = {
+  data: CalendarPost[];
 };
 
 type AssignmentResponse = {
@@ -32,50 +46,49 @@ export function CalendarPage() {
   const { authHeaders, viewer, visibleUsers } = useAuth();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<CalendarAssignment[]>([]);
+  const [posts, setPosts] = useState<CalendarPost[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
   const [statusMessage, setStatusMessage] = useState("Takvim atamaları yükleniyor.");
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
-  useEffect(() => {
+  const loadCalendarData = useCallback(async () => {
     if (!viewer) {
       return;
     }
 
-    let isCurrent = true;
+    setStatusMessage("Takvim yükleniyor.");
 
-    async function loadAssignments() {
-      setStatusMessage("Takvim atamaları yükleniyor.");
-
-      try {
-        const response = await fetch(`${apiUrl}/assignments?month=2026-07`, {
+    try {
+      const [assignmentsResponse, postsResponse] = await Promise.all([
+        fetch(`${apiUrl}/assignments?month=2026-07`, {
           headers: authHeaders()
-        });
+        }),
+        fetch(`${apiUrl}/posts?month=2026-07`, {
+          headers: authHeaders()
+        })
+      ]);
 
-        if (!response.ok) {
-          throw new Error("Takvim atamaları alınamadı.");
-        }
-
-        const payload = (await response.json()) as AssignmentsResponse;
-
-        if (isCurrent) {
-          setAssignments(payload.data);
-          setStatusMessage("");
-        }
-      } catch {
-        if (isCurrent) {
-          setAssignments([]);
-          setStatusMessage("Takvim atamaları API'den alınamadı.");
-        }
+      if (!assignmentsResponse.ok || !postsResponse.ok) {
+        throw new Error("Takvim verisi alınamadı.");
       }
+
+      const assignmentsPayload = (await assignmentsResponse.json()) as AssignmentsResponse;
+      const postsPayload = (await postsResponse.json()) as PostsResponse;
+
+      setAssignments(assignmentsPayload.data);
+      setPosts(postsPayload.data);
+      setStatusMessage("");
+    } catch {
+      setAssignments([]);
+      setPosts([]);
+      setStatusMessage("Takvim verisi API'den alınamadı.");
     }
+  }, [viewer?.id]);
 
-    void loadAssignments();
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [viewer]);
+  useEffect(() => {
+    void loadCalendarData();
+  }, [loadCalendarData]);
 
   const days = useMemo(() => {
     return Array.from({ length: 35 }, (_, index) => {
@@ -85,10 +98,11 @@ export function CalendarPage() {
       return {
         day,
         date,
-        assignments: assignments.filter((item) => item.date === date)
+        assignments: assignments.filter((item) => item.date === date),
+        posts: posts.filter((item) => item.scheduledDate === date)
       };
     });
-  }, [assignments]);
+  }, [assignments, posts]);
 
   const handleDrop = async (event: DragEvent<HTMLButtonElement>, date: string) => {
     event.preventDefault();
@@ -199,6 +213,24 @@ export function CalendarPage() {
             onClick={() => setSelectedDate(day.date)}
           >
             <span className="day-number">{day.day}</span>
+            {day.posts.length ? (
+              <div className="cell-posts">
+                {day.posts.map((post) => (
+                  <span className={`cell-post is-${post.status}`} key={post.id}>
+                    <img
+                      alt={post.author.name}
+                      src={post.author.avatarUrl ?? ""}
+                      title={post.author.name}
+                    />
+                    {post.platform === "instagram" ? (
+                      <Instagram aria-label="Instagram" size={14} />
+                    ) : (
+                      <Linkedin aria-label="LinkedIn" size={14} />
+                    )}
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <div className="cell-avatars">
               {day.assignments.map((assignment) => (
                 <img
@@ -220,7 +252,7 @@ export function CalendarPage() {
         initialDate={sheetDefaults.date}
         initialUserId={sheetDefaults.userId}
         onClose={() => setIsSheetOpen(false)}
-        onSaved={() => undefined}
+        onSaved={loadCalendarData}
         onStatusChange={setStatusMessage}
       />
     </section>

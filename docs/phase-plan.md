@@ -77,3 +77,29 @@ Amaç: İlk kullanılabilir sürümü güvenilir hale getirmek.
 - Temel testler
 - Seed data
 - Deployment hazırlığı
+
+## Faz 7 - Medya upload simülasyonu
+
+Amaç: İçeriklere görsel ve PDF ekleme akışını lokal storage ile simüle etmek.
+
+- Tekli ve çoklu görsel seçimi
+- Browser tarafında görsel boyut düşürme
+- PDF seçimi
+- Attachment metadata kaydı
+- Lokal upload klasörü ve static serving
+- Admin içerik tablosunda medya görüntüleme
+- Revizyon tablosunda medya görüntüleme
+
+## Faz 8 - Kullanıcı içerik yönetimi
+
+Amaç: İçerik sahibinin kendi gönderilerini takvim dışında da yönetebilmesini sağlamak.
+
+- Kullanıcı için `İçerikler` sayfası
+- İçerikler sayfasından yeni içerik ekleme
+- İçerik sahibinin kendi postunu güncellemesi
+- İçerik sahibinin kendi postunu silmesi
+- Admin için mevcut review aksiyonlarını koruma
+- Ortak create/edit sheet formu
+- Mevcut medya koruma, silme ve yeni medya ekleme
+- Takvimde gerçek postları gösterme
+- Aynı gün aynı kullanıcıdan çoklu post görünümü

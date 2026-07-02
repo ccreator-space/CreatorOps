@@ -25,6 +25,11 @@ enum PostStatus {
   revision_requested
 }
 
+enum AttachmentType {
+  image
+  pdf
+}
+
 model User {
   id           String               @id @default(cuid())
   name         String
@@ -66,6 +71,7 @@ model SocialPost {
   author     User                @relation("PostAuthor", fields: [authorId], references: [id])
   assignment CalendarAssignment? @relation(fields: [assignmentId], references: [id])
   reviews    ReviewEvent[]
+  attachments PostAttachment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,6 +79,25 @@ model SocialPost {
   @@index([status])
   @@index([scheduledFor])
   @@index([authorId])
+}
+
+model PostAttachment {
+  id                  String         @id @default(cuid())
+  postId              String
+  type                AttachmentType
+  originalName        String
+  mimeType            String
+  sizeBytes           Int
+  compressedSizeBytes Int?
+  width               Int?
+  height              Int?
+  storagePath         String
+  publicUrl           String
+  sortOrder           Int            @default(0)
+  post                SocialPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt           DateTime       @default(now())
+
+  @@index([postId])
 }
 
 model ReviewEvent {

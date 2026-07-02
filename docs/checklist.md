@@ -76,6 +76,34 @@
 - [x] Production build doğrulaması
 - [x] Deployment hazırlığı
 
+## Medya upload simülasyonu
+
+- [x] PostAttachment modeli eklendi
+- [x] Attachment migration uygulandı
+- [x] Multipart upload endpoint desteği eklendi
+- [x] Lokal upload klasörü ve static serving eklendi
+- [x] Görsel sıkıştırma helper'ı eklendi
+- [x] PDF upload simülasyonu eklendi
+- [x] Sheet formuna tekli/çoklu medya seçimi eklendi
+- [x] Admin içerikler tablosunda medya kolonu eklendi
+- [x] Medya preview modalı eklendi
+- [x] Revizeler tablosunda medya görüntüleme eklendi
+- [x] PDF ve çoklu görseller için carousel preview eklendi
+- [x] Sheet içinde seçilen medya kaydetmeden önce önizlenebilir hale getirildi
+
+## Kullanıcı içerik yönetimi
+
+- [x] Normal kullanıcı için İçerikler sayfası açıldı
+- [x] İçerikler sayfasından yeni içerik ekleme eklendi
+- [x] ContentSheet create/edit ortak formuna dönüştürüldü
+- [x] Kullanıcı kendi içeriğini güncelleyebiliyor
+- [x] Kullanıcı kendi içeriğini silebiliyor
+- [x] Backend post update endpointi eklendi
+- [x] Backend post delete endpointi eklendi
+- [x] Update sırasında mevcut medya koruma/silme/yeni medya ekleme desteklendi
+- [x] Takvim gerçek postları ay filtresiyle çekiyor
+- [x] Aynı kullanıcı aynı gün birden fazla post attığında çoklu post görünümü gösteriliyor
+
 ## Planlanan akışlar
 
 - [x] Admin tüm avatarları takvime sürükleyebilecek
