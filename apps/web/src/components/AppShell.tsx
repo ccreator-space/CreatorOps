@@ -4,9 +4,10 @@ import { useAuth } from "../features/auth/AuthProvider";
 
 type AppShellProps = {
   children: ReactNode;
+  currentView: "calendar" | "contents" | "revisions";
 };
 
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, currentView }: AppShellProps) {
   const { viewer, users, setViewerId } = useAuth();
   const isAdmin = viewer.role === "admin";
 
@@ -19,17 +20,23 @@ export function AppShell({ children }: AppShellProps) {
         </div>
 
         <nav className="nav-list">
-          <a className="nav-link is-active" href="#calendar">
+          <a className={`nav-link ${currentView === "calendar" ? "is-active" : ""}`} href="#calendar">
             <CalendarDays size={18} />
             Takvim
           </a>
           {isAdmin ? (
-            <a className="nav-link" href="#contents">
+            <a
+              className={`nav-link ${currentView === "contents" ? "is-active" : ""}`}
+              href="#contents"
+            >
               <FileCheck2 size={18} />
               İçerikler
             </a>
           ) : (
-            <a className="nav-link" href="#revisions">
+            <a
+              className={`nav-link ${currentView === "revisions" ? "is-active" : ""}`}
+              href="#revisions"
+            >
               <RotateCcw size={18} />
               Revizeler
             </a>

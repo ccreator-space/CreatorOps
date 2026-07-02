@@ -25,8 +25,10 @@
 - [x] Faz 1 role göre avatar listesi filtrelendi
 - [x] Gerçek drag and drop davranışı
 - [x] Takvim atamaları için API bağlantıları
-- [ ] Admin içerikler sayfasını route'a bağlama
+- [x] Admin içerikler sayfasını route'a bağlama
 - [ ] Kullanıcı revizeler sayfasını route'a bağlama
+- [x] Admin içerikler sayfasını API'ye bağlama
+- [x] Admin içerikler sayfasına durum filtresi ekleme
 
 ## Backend
 
@@ -42,7 +44,8 @@
 - [ ] Users servisinde Prisma bağlantısını kullanma
 - [ ] Auth middleware
 - [ ] Role-based access control
-- [ ] Review action endpointleri
+- [x] Review action endpointleri
+- [x] Review event kaydı
 
 ## Database
 
@@ -62,8 +65,9 @@
 - [x] Takvim atamaları PostgreSQL'e kaydedilebilecek
 - [x] Seçili güne içerik oluşturulabilecek
 - [x] İçerik pending_review durumuyla PostgreSQL'e kaydedilebilecek
-- [ ] Admin içeriği approve edebilecek
-- [ ] Admin içeriği reject edebilecek
-- [ ] Admin revize isteyebilecek
+- [x] Admin içeriği approve edebilecek
+- [x] Admin içeriği reject edebilecek
+- [x] Admin revize isteyebilecek
+- [x] Admin review event kaydı oluşturabilecek
 - [ ] Kullanıcı revize edilen içeriği düzenleyebilecek
 - [ ] Kullanıcı içeriği tekrar onaya gönderebilecek

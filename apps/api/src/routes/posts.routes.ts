@@ -1,6 +1,7 @@
-import { prisma, type SocialPost, type User } from "@shipin/db";
+import { prisma, type ReviewEvent, type SocialPost, type User } from "@shipin/db";
 import { Router } from "express";
 import { z } from "zod";
+import { requireRole } from "../middleware/current-user.js";
 
 export const postsRouter = Router();
 
@@ -12,8 +13,22 @@ const createPostSchema = z.object({
   content: z.string().min(1)
 });
 
+const postStatusSchema = z.enum([
+  "draft",
+  "pending_review",
+  "approved",
+  "rejected",
+  "revision_requested"
+]);
+
+const reviewActionSchema = z.object({
+  action: z.enum(["approve", "reject", "request_revision"]),
+  note: z.string().trim().optional()
+});
+
 type PostWithAuthor = SocialPost & {
   author: User;
+  reviews?: ReviewEvent[];
 };
 
 function parseDateOnly(value: string) {
@@ -33,22 +48,32 @@ function serializePost(post: PostWithAuthor) {
     title: post.title,
     content: post.content,
     status: post.status,
-    author: post.author
+    author: post.author,
+    latestReview: post.reviews?.[0]
   };
 }
 
 postsRouter.get("/", async (request, response, next) => {
   try {
     const currentUser = response.locals.currentUser;
-    const status = typeof request.query.status === "string" ? request.query.status : undefined;
+    const status =
+      typeof request.query.status === "string"
+        ? postStatusSchema.parse(request.query.status)
+        : undefined;
 
     const posts = await prisma.socialPost.findMany({
       where: {
         ...(currentUser.role === "admin" ? {} : { authorId: currentUser.id }),
-        ...(status ? { status: status as SocialPost["status"] } : {})
+        ...(status ? { status } : {})
       },
       include: {
-        author: true
+        author: true,
+        reviews: {
+          orderBy: {
+            createdAt: "desc"
+          },
+          take: 1
+        }
       },
       orderBy: {
         scheduledFor: "asc"
@@ -57,6 +82,75 @@ postsRouter.get("/", async (request, response, next) => {
 
     response.json({
       data: posts.map(serializePost)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+postsRouter.post("/:postId/review", requireRole("admin"), async (request, response, next) => {
+  try {
+    const { postId } = request.params;
+    const payload = reviewActionSchema.parse(request.body);
+    const currentUser = response.locals.currentUser;
+
+    const nextStatus =
+      payload.action === "approve"
+        ? "approved"
+        : payload.action === "reject"
+          ? "rejected"
+          : "revision_requested";
+
+    if (payload.action === "request_revision" && !payload.note) {
+      response.status(400).json({
+        message: "Revision note is required"
+      });
+      return;
+    }
+
+    const existingPost = await prisma.socialPost.findUnique({
+      where: {
+        id: postId
+      }
+    });
+
+    if (!existingPost) {
+      response.status(404).json({
+        message: "Post not found"
+      });
+      return;
+    }
+
+    const post = await prisma.$transaction(async (tx) => {
+      const updatedPost = await tx.socialPost.update({
+        where: {
+          id: postId
+        },
+        data: {
+          status: nextStatus
+        },
+        include: {
+          author: true
+        }
+      });
+
+      const review = await tx.reviewEvent.create({
+        data: {
+          postId,
+          actorId: currentUser.id,
+          status: nextStatus,
+          note: payload.note
+        }
+      });
+
+      return {
+        ...updatedPost,
+        reviews: [review]
+      };
+    });
+
+    response.json({
+      data: serializePost(post)
     });
   } catch (error) {
     next(error);
