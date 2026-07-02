@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import toast from "react-hot-toast";
 import { useEffect, useState, type FormEvent } from "react";
 import type { UserSummary } from "../../lib/mock-data";
 
@@ -62,6 +63,7 @@ export function ContentSheet({
     event.preventDefault();
 
     if (!form.scheduledDate || !form.assigneeId || !form.title.trim() || !form.content.trim()) {
+      toast.error("Tarih, kullanıcı, başlık ve içerik alanları zorunlu.");
       onStatusChange("Tarih, kullanıcı, başlık ve içerik alanları zorunlu.");
       return;
     }
@@ -89,10 +91,12 @@ export function ContentSheet({
         throw new Error("İçerik kaydedilemedi.");
       }
 
+      toast.success("İçerik onaya gönderildi.");
       onStatusChange("İçerik pending_review durumuyla kaydedildi.");
       onSaved();
       onClose();
     } catch {
+      toast.error("İçerik kaydedilemedi.");
       onStatusChange("İçerik kaydedilemedi.");
     } finally {
       setIsSaving(false);

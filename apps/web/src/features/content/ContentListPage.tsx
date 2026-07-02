@@ -1,4 +1,5 @@
 import { Check, MessageSquareText, X } from "lucide-react";
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -91,6 +92,7 @@ export function ContentListPage() {
     const note = notes[postId]?.trim();
 
     if (action === "request_revision" && !note) {
+      toast.error("Revize istemek için not gir.");
       setStatusMessage("Revize istemek için not gir.");
       return;
     }
@@ -119,9 +121,11 @@ export function ContentListPage() {
         ...currentNotes,
         [postId]: ""
       }));
+      toast.success("İşlem kaydedildi.");
       setStatusMessage("İşlem kaydedildi.");
       await loadPosts();
     } catch {
+      toast.error("İşlem kaydedilemedi.");
       setStatusMessage("İşlem kaydedilemedi.");
     } finally {
       setActivePostId(null);

@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import toast from "react-hot-toast";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { AvatarStack } from "../../components/AvatarStack";
 import { type UserSummary } from "../../lib/mock-data";
@@ -135,6 +136,7 @@ export function CalendarPage() {
 
         return [...withoutDuplicate, payload.data];
       });
+      toast.success("Atama kaydedildi.");
       setStatusMessage("Atama kaydedildi.");
       setSheetDefaults({
         date,
@@ -142,6 +144,7 @@ export function CalendarPage() {
       });
       setIsSheetOpen(true);
     } catch {
+      toast.error("Atama kaydedilemedi.");
       setStatusMessage("Atama kaydedilemedi.");
     } finally {
       setIsSavingAssignment(false);

@@ -1,4 +1,5 @@
 import { Check, Pencil } from "lucide-react";
+import toast from "react-hot-toast";
 import { useEffect, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 
@@ -85,6 +86,7 @@ export function RevisionsPage() {
     const draft = drafts[postId];
 
     if (!draft?.title.trim() || !draft.content.trim()) {
+      toast.error("Başlık ve içerik zorunlu.");
       setStatusMessage("Başlık ve içerik zorunlu.");
       return;
     }
@@ -109,10 +111,12 @@ export function RevisionsPage() {
         throw new Error("İçerik tekrar onaya gönderilemedi.");
       }
 
+      toast.success("İçerik tekrar onaya gönderildi.");
       setEditingPostId(null);
       setStatusMessage("İçerik tekrar onaya gönderildi.");
       await loadRevisions();
     } catch {
+      toast.error("İçerik tekrar onaya gönderilemedi.");
       setStatusMessage("İçerik tekrar onaya gönderilemedi.");
     } finally {
       setActivePostId(null);
