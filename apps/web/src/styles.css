@@ -1092,12 +1092,81 @@ button:disabled {
 }
 
 .form-section input,
+.form-section select,
 .form-section textarea,
 .submission-management select {
   border: 1px solid #cfd8d0;
   border-radius: 8px;
   color: #172026;
   padding: 10px 12px;
+}
+
+.field-help {
+  color: #69766e;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.range-control {
+  align-items: center;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 44px;
+}
+
+.range-control strong {
+  color: #172026;
+  text-align: right;
+}
+
+.form-builder {
+  display: grid;
+  gap: 16px;
+}
+
+.section-heading {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-heading h2 {
+  margin: 0;
+}
+
+.question-list {
+  display: grid;
+  gap: 10px;
+}
+
+.question-row {
+  align-items: center;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.question-row p {
+  color: #69766e;
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.modal-form select {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  padding: 10px 12px;
+}
+
+.config-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .submission-detail {

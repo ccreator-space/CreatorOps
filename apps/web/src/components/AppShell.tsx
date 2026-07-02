@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, FileCheck2, LogOut, Route, RotateCcw } from "lucide-react";
+import { CalendarDays, ClipboardList, FileCheck2, FilePenLine, LogOut, Route, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import { useAuth } from "../features/auth/AuthProvider";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
-export type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series-assignments";
+export type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series-assignments" | "forms";
 
 type AppShellProps = {
   children: ReactNode;
@@ -109,13 +109,22 @@ export function AppShell({ children, currentView }: AppShellProps) {
             Başvurular
           </NavLink>
           {isAdmin ? (
-            <NavLink
-              className={`nav-link ${currentView === "series-assignments" ? "is-active" : ""}`}
-              to="/series-assignments"
-            >
-              <Route size={18} />
-              Seri Atamaları
-            </NavLink>
+            <>
+              <NavLink
+                className={`nav-link ${currentView === "forms" ? "is-active" : ""}`}
+                to="/forms"
+              >
+                <FilePenLine size={18} />
+                Formlar
+              </NavLink>
+              <NavLink
+                className={`nav-link ${currentView === "series-assignments" ? "is-active" : ""}`}
+                to="/series-assignments"
+              >
+                <Route size={18} />
+                Seri Atamaları
+              </NavLink>
+            </>
           ) : null}
         </nav>
 

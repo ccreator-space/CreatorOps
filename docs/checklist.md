@@ -124,6 +124,22 @@
 - [x] Admin için tekil başvuru atama eklendi
 - [x] Admin için seri atama ekranı eklendi
 
+## Yönetilebilir form builder
+
+- [x] SubmissionForm modeli eklendi
+- [x] SubmissionFormQuestion modeli eklendi
+- [x] FormQuestionType enum'u eklendi
+- [x] Submission kayıtlarına formId eklendi
+- [x] SubmissionAttachment kayıtlarına questionKey eklendi
+- [x] Mevcut üç public form DB seed'i olarak eklendi
+- [x] Public form tanımı endpointi eklendi
+- [x] Public form submit endpointi dinamik forma göre eklendi
+- [x] Admin form listeleme ve güncelleme endpointleri eklendi
+- [x] Admin soru ekleme, düzenleme, silme ve sıralama endpointleri eklendi
+- [x] Public submit sayfası DB form tanımından render ediliyor
+- [x] Admin Formlar sayfası eklendi
+- [x] Başvuru detayında form sorularına göre cevap gösterimi eklendi
+
 ## Planlanan akışlar
 
 - [x] Admin tüm avatarları takvime sürükleyebilecek

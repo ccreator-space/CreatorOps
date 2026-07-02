@@ -6,6 +6,7 @@ import { MediaCarouselModal } from "../../components/MediaCarouselModal";
 import { Modal } from "../../components/Modal";
 import type { UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
+import type { SubmissionForm, SubmissionFormQuestion } from "../forms/form-types";
 import {
   submissionConfigs,
   submissionStatusLabels,
@@ -21,6 +22,7 @@ type SubmissionAttachment = {
   type: "image" | "pdf";
   originalName: string;
   mimeType: string;
+  questionKey?: string | null;
   width?: number | null;
   height?: number | null;
   publicUrl: string;
@@ -36,6 +38,7 @@ type Submission = {
   submitterLinkedin: string;
   note?: string | null;
   payload: Record<string, unknown>;
+  form?: SubmissionForm | null;
   assignedTo?: UserSummary | null;
   createdAt: string;
   attachments: SubmissionAttachment[];
@@ -83,6 +86,17 @@ function stringifyPayloadValue(value: unknown) {
   }
 
   return value ? String(value) : "-";
+}
+
+function getFallbackQuestions(submission: Submission): SubmissionFormQuestion[] {
+  return submissionConfigs[submission.type].fields.map((field, index) => ({
+    id: field.key,
+    key: field.key,
+    label: field.label,
+    type: field.type === "textarea" ? "textarea" : "text",
+    required: Boolean(field.required),
+    sortOrder: index
+  }));
 }
 
 export function SubmissionsPage() {
@@ -349,12 +363,24 @@ export function SubmissionsPage() {
             </div>
 
             <div className="submission-answer-grid">
-              {submissionConfigs[activeSubmission.type].fields.map((field) => (
-                <div className="submission-answer" key={field.key}>
-                  <strong>{field.label}</strong>
-                  <p>{stringifyPayloadValue(activeSubmission.payload[field.key])}</p>
-                </div>
-              ))}
+              {(activeSubmission.form?.questions ?? getFallbackQuestions(activeSubmission)).map((question) => {
+                const mediaCount = activeSubmission.attachments.filter(
+                  (attachment) => attachment.questionKey === question.key
+                ).length;
+
+                return (
+                  <div className="submission-answer" key={question.key}>
+                    <strong>{question.label}</strong>
+                    <p>
+                      {question.type === "media"
+                        ? mediaCount
+                          ? `${mediaCount} medya dosyası`
+                          : "-"
+                        : stringifyPayloadValue(activeSubmission.payload[question.key])}
+                    </p>
+                  </div>
+                );
+              })}
               {activeSubmission.note ? (
                 <div className="submission-answer">
                   <strong>Ek not</strong>

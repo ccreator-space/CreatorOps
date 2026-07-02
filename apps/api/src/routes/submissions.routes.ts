@@ -67,6 +67,15 @@ submissionsRouter.get("/", async (_request, response, next) => {
               ]
             },
       include: {
+        form: {
+          include: {
+            questions: {
+              orderBy: {
+                sortOrder: "asc"
+              }
+            }
+          }
+        },
         assignedTo: true,
         attachments: {
           orderBy: {
@@ -128,6 +137,15 @@ submissionsRouter.patch("/:submissionId/status", async (request, response, next)
         status: payload.status
       },
       include: {
+        form: {
+          include: {
+            questions: {
+              orderBy: {
+                sortOrder: "asc"
+              }
+            }
+          }
+        },
         assignedTo: true,
         attachments: {
           orderBy: {
@@ -174,6 +192,15 @@ submissionsRouter.patch("/:submissionId/assign", requireRole("admin"), async (re
         status: payload.assignedToId ? "assigned" : "new"
       },
       include: {
+        form: {
+          include: {
+            questions: {
+              orderBy: {
+                sortOrder: "asc"
+              }
+            }
+          }
+        },
         assignedTo: true,
         attachments: {
           orderBy: {

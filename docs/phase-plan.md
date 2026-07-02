@@ -122,3 +122,18 @@ Amaç: Admin panele erişemeyen topluluk üyelerinin seri başvurularını publi
 - Başvuru detay modalı
 - Başvuru status yönetimi
 - Admin için seri atama ekranı
+
+## Faz 10 - Yönetilebilir form builder
+
+Amaç: Public seri başvuru formlarını koddan çıkartıp admin panelinden yönetilebilir hale getirmek.
+
+- SubmissionForm ve SubmissionFormQuestion modelleri
+- Form başlığı, açıklaması, slug ve aktiflik yönetimi
+- Soru ekleme, düzenleme, silme
+- Soru sıralama
+- Soru tipleri: text, textarea, range, media
+- Media sorularında dosya tipi ve maksimum dosya sayısı kısıtı
+- Public formun DB form tanımından dinamik render edilmesi
+- Public submission'ın formId ve questionKey ile kaydedilmesi
+- Başvuru detayında cevapların form sorularına göre gösterilmesi
+- Admin sidebar'da Formlar sayfası

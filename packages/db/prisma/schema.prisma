@@ -45,6 +45,18 @@ enum SubmissionStatus {
   archived
 }
 
+enum FormQuestionType {
+  text
+  textarea
+  range
+  media
+  url
+  email
+  number
+  select
+  checkbox
+}
+
 model User {
   id           String               @id @default(cuid())
   name         String
@@ -133,6 +145,7 @@ model ReviewEvent {
 
 model Submission {
   id                  String                 @id @default(cuid())
+  formId              String?
   type                SubmissionType
   status              SubmissionStatus       @default(new)
   submitterFirstName  String
@@ -142,11 +155,13 @@ model Submission {
   note                String?
   payload             Json
   assignedToId        String?
+  form                SubmissionForm?        @relation(fields: [formId], references: [id], onDelete: SetNull)
   assignedTo          User?                  @relation("SubmissionAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   attachments         SubmissionAttachment[]
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
 
+  @@index([formId])
   @@index([type])
   @@index([status])
   @@index([assignedToId])
@@ -156,6 +171,7 @@ model Submission {
 model SubmissionAttachment {
   id                  String         @id @default(cuid())
   submissionId        String
+  questionKey         String?
   type                AttachmentType
   originalName        String
   mimeType            String
@@ -170,6 +186,42 @@ model SubmissionAttachment {
   createdAt           DateTime       @default(now())
 
   @@index([submissionId])
+}
+
+model SubmissionForm {
+  id          String                   @id @default(cuid())
+  slug        String                   @unique
+  title       String
+  description String
+  seriesType  SubmissionType
+  isActive    Boolean                  @default(true)
+  questions   SubmissionFormQuestion[]
+  submissions Submission[]
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@index([seriesType])
+  @@index([isActive])
+}
+
+model SubmissionFormQuestion {
+  id          String           @id @default(cuid())
+  formId      String
+  key         String
+  label       String
+  description String?
+  type        FormQuestionType
+  required    Boolean          @default(false)
+  sortOrder   Int              @default(0)
+  placeholder String?
+  helpText     String?
+  config      Json?
+  form        SubmissionForm   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([formId, key])
+  @@index([formId])
 }
 
 model SubmissionSeriesAssignment {

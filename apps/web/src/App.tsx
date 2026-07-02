@@ -12,18 +12,19 @@ import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
 import { LoginPage } from "./features/auth/LoginPage";
 import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
+import { FormBuilderPage } from "./features/forms/FormBuilderPage";
 import { RevisionsPage } from "./features/revisions/RevisionsPage";
 import { PublicSubmissionPage } from "./features/submissions/PublicSubmissionPage";
 import { SeriesAssignmentsPage } from "./features/submissions/SeriesAssignmentsPage";
 import { SubmissionsPage } from "./features/submissions/SubmissionsPage";
-import type { SubmissionType } from "./features/submissions/submission-config";
 
 const routeViewMap: Record<string, AppView> = {
   "/calendar": "calendar",
   "/contents": "contents",
   "/revisions": "revisions",
   "/submissions": "submissions",
-  "/series-assignments": "series-assignments"
+  "/series-assignments": "series-assignments",
+  "/forms": "forms"
 };
 
 function AuthGate() {
@@ -84,10 +85,6 @@ function PanelLayout() {
   );
 }
 
-function PublicSubmissionRoute({ type }: { type: SubmissionType }) {
-  return <PublicSubmissionPage initialType={type} />;
-}
-
 export function App() {
   return (
     <>
@@ -95,18 +92,7 @@ export function App() {
         <AuthProvider>
           <Routes>
             <Route path="/submit" element={<Navigate to="/submit/builder-spotlight" replace />} />
-            <Route
-              path="/submit/builder-spotlight"
-              element={<PublicSubmissionRoute type="builder_spotlight" />}
-            />
-            <Route
-              path="/submit/project-highlight"
-              element={<PublicSubmissionRoute type="project_highlight" />}
-            />
-            <Route
-              path="/submit/readme-book"
-              element={<PublicSubmissionRoute type="readme_book" />}
-            />
+            <Route path="/submit/:slug" element={<PublicSubmissionPage />} />
 
             <Route path="/login" element={<GuestOnlyLogin />} />
 
@@ -120,6 +106,7 @@ export function App() {
                 </Route>
                 <Route element={<RoleGuard role="admin" fallback="/submissions" />}>
                   <Route path="/series-assignments" element={<SeriesAssignmentsPage />} />
+                  <Route path="/forms" element={<FormBuilderPage />} />
                 </Route>
               </Route>
             </Route>
