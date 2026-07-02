@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { ListPageTemplate, type ListColumn } from "../../components/ListPageTemplate";
@@ -43,7 +43,7 @@ function getDefaultConfig(type: FormQuestionType): FormQuestionConfig {
   if (type === "media") {
     return {
       maxFiles: 3,
-      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml", "application/pdf"]
     };
   }
 
@@ -354,183 +354,199 @@ export function FormBuilderPage() {
 
       {editingForm ? (
         <Modal title={editingForm.title} size="wide" onClose={() => setEditingForm(null)}>
-          <div className="form-builder">
-            <section className="form-section">
-              <h2>Form bilgileri</h2>
-              <div className="form-grid">
-                <label>
-                  Başlık
-                  <input value={editingForm.title} onChange={(event) => updateEditingForm({ title: event.target.value })} />
-                </label>
-                <label>
-                  Slug
-                  <input value={editingForm.slug} onChange={(event) => updateEditingForm({ slug: event.target.value })} />
-                </label>
-                <label>
-                  Seri
-                  <select value={editingForm.seriesType} onChange={(event) => updateEditingForm({ seriesType: event.target.value as SubmissionType })}>
-                    {submissionTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {submissionTypeLabels[type]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Aktif
-                  <select value={editingForm.isActive ? "true" : "false"} onChange={(event) => updateEditingForm({ isActive: event.target.value === "true" })}>
-                    <option value="true">Aktif</option>
-                    <option value="false">Pasif</option>
-                  </select>
-                </label>
-                <label className="is-wide">
-                  Açıklama
-                  <textarea rows={3} value={editingForm.description} onChange={(event) => updateEditingForm({ description: event.target.value })} />
-                </label>
-              </div>
-              <button className="primary-button" type="button" disabled={isSaving} onClick={saveForm}>
-                <Save size={18} />
-                Formu kaydet
-              </button>
-            </section>
-
-            <section className="form-section">
-              <div className="section-heading">
-                <h2>Sorular</h2>
-                <button className="secondary-button" type="button" onClick={() => setQuestionDraft(createQuestionDraft())}>
-                  <Plus size={16} />
-                  Soru ekle
+          <div className={`form-builder ${questionDraft ? "has-editor" : ""}`}>
+            <div className="form-builder-main">
+              <section className="form-section">
+                <h2>Form bilgileri</h2>
+                <div className="form-grid">
+                  <label>
+                    Başlık
+                    <input value={editingForm.title} onChange={(event) => updateEditingForm({ title: event.target.value })} />
+                  </label>
+                  <label>
+                    Slug
+                    <input value={editingForm.slug} onChange={(event) => updateEditingForm({ slug: event.target.value })} />
+                  </label>
+                  <label>
+                    Seri
+                    <select value={editingForm.seriesType} onChange={(event) => updateEditingForm({ seriesType: event.target.value as SubmissionType })}>
+                      {submissionTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {submissionTypeLabels[type]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Aktif
+                    <select value={editingForm.isActive ? "true" : "false"} onChange={(event) => updateEditingForm({ isActive: event.target.value === "true" })}>
+                      <option value="true">Aktif</option>
+                      <option value="false">Pasif</option>
+                    </select>
+                  </label>
+                  <label className="is-wide">
+                    Açıklama
+                    <textarea rows={3} value={editingForm.description} onChange={(event) => updateEditingForm({ description: event.target.value })} />
+                  </label>
+                </div>
+                <button className="primary-button" type="button" disabled={isSaving} onClick={saveForm}>
+                  <Save size={18} />
+                  Formu kaydet
                 </button>
-              </div>
+              </section>
 
-              <div className="question-list">
-                {editingForm.questions.map((question, index) => (
-                  <div className="question-row" key={question.id}>
-                    <div>
-                      <strong>{question.label}</strong>
-                      <p>
-                        {question.key} · {questionTypeLabels[question.type]}
-                        {question.required ? " · Zorunlu" : ""}
-                      </p>
+              <section className="form-section">
+                <div className="section-heading">
+                  <h2>Sorular</h2>
+                  <button className="secondary-button" type="button" onClick={() => setQuestionDraft(createQuestionDraft())}>
+                    <Plus size={16} />
+                    Soru ekle
+                  </button>
+                </div>
+
+                <div className="question-list">
+                  {editingForm.questions.map((question, index) => (
+                    <div className={`question-row ${questionDraft?.id === question.id ? "is-selected" : ""}`} key={question.id}>
+                      <div>
+                        <strong>{question.label}</strong>
+                        <p>
+                          {question.key} · {questionTypeLabels[question.type]}
+                          {question.required ? " · Zorunlu" : ""}
+                        </p>
+                      </div>
+                      <div className="table-actions">
+                        <button className="icon-button" type="button" aria-label="Yukarı taşı" disabled={index === 0 || isSaving} onClick={() => reorderQuestion(question, "up")}>
+                          <ArrowUp size={16} />
+                        </button>
+                        <button className="icon-button" type="button" aria-label="Aşağı taşı" disabled={index === editingForm.questions.length - 1 || isSaving} onClick={() => reorderQuestion(question, "down")}>
+                          <ArrowDown size={16} />
+                        </button>
+                        <button className="icon-button" type="button" aria-label="Düzenle" onClick={() => setQuestionDraft(question)}>
+                          <Pencil size={16} />
+                        </button>
+                        <button className="icon-button is-danger" type="button" aria-label="Sil" disabled={isSaving} onClick={() => deleteQuestion(question)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="table-actions">
-                      <button className="icon-button" type="button" aria-label="Yukarı taşı" disabled={index === 0 || isSaving} onClick={() => reorderQuestion(question, "up")}>
-                        <ArrowUp size={16} />
-                      </button>
-                      <button className="icon-button" type="button" aria-label="Aşağı taşı" disabled={index === editingForm.questions.length - 1 || isSaving} onClick={() => reorderQuestion(question, "down")}>
-                        <ArrowDown size={16} />
-                      </button>
-                      <button className="icon-button" type="button" aria-label="Düzenle" onClick={() => setQuestionDraft(question)}>
-                        <Pencil size={16} />
-                      </button>
-                      <button className="icon-button is-danger" type="button" aria-label="Sil" disabled={isSaving} onClick={() => deleteQuestion(question)}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+
+            {questionDraft ? (
+              <aside className="question-editor-panel">
+                <div className="question-editor-header">
+                  <div>
+                    <h3>{questionDraft.id === "new" ? "Soru ekle" : "Soruyu düzenle"}</h3>
+                    <p>{questionTypeLabels[questionDraft.type]}</p>
                   </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        </Modal>
-      ) : null}
+                  <button className="icon-button" type="button" aria-label="Editörü kapat" onClick={() => setQuestionDraft(null)}>
+                    <X size={16} />
+                  </button>
+                </div>
 
-      {questionDraft ? (
-        <Modal
-          title={questionDraft.id === "new" ? "Soru ekle" : "Soruyu düzenle"}
-          onClose={() => setQuestionDraft(null)}
-          footer={
-            <>
-              <button className="secondary-button" type="button" onClick={() => setQuestionDraft(null)}>
-                Vazgeç
-              </button>
-              <button className="primary-button" type="button" disabled={isSaving} onClick={saveQuestion}>
-                Kaydet
-              </button>
-            </>
-          }
-        >
-          <div className="modal-form">
-            <label>
-              Soru anahtarı
-              <input value={questionDraft.key} onChange={(event) => updateQuestionDraft({ key: event.target.value })} />
-            </label>
-            <label>
-              Soru metni
-              <input value={questionDraft.label} onChange={(event) => updateQuestionDraft({ label: event.target.value })} />
-            </label>
-            <label>
-              Tip
-              <select value={questionDraft.type} onChange={(event) => updateQuestionDraft({ type: event.target.value as FormQuestionType })}>
-                {questionTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {questionTypeLabels[type]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Zorunlu
-              <select value={questionDraft.required ? "true" : "false"} onChange={(event) => updateQuestionDraft({ required: event.target.value === "true" })}>
-                <option value="false">Hayır</option>
-                <option value="true">Evet</option>
-              </select>
-            </label>
-            <label>
-              Placeholder
-              <input value={questionDraft.placeholder ?? ""} onChange={(event) => updateQuestionDraft({ placeholder: event.target.value })} />
-            </label>
-            <label>
-              Yardım metni
-              <input value={questionDraft.helpText ?? ""} onChange={(event) => updateQuestionDraft({ helpText: event.target.value })} />
-            </label>
+                <div className="modal-form">
+                  <label>
+                    Soru anahtarı
+                    <input value={questionDraft.key} onChange={(event) => updateQuestionDraft({ key: event.target.value })} />
+                  </label>
+                  <label>
+                    Soru metni
+                    <input value={questionDraft.label} onChange={(event) => updateQuestionDraft({ label: event.target.value })} />
+                  </label>
+                  <label>
+                    Tip
+                    <select value={questionDraft.type} onChange={(event) => updateQuestionDraft({ type: event.target.value as FormQuestionType })}>
+                      {questionTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {questionTypeLabels[type]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Zorunlu
+                    <select value={questionDraft.required ? "true" : "false"} onChange={(event) => updateQuestionDraft({ required: event.target.value === "true" })}>
+                      <option value="false">Hayır</option>
+                      <option value="true">Evet</option>
+                    </select>
+                  </label>
+                  <label>
+                    Placeholder
+                    <input value={questionDraft.placeholder ?? ""} onChange={(event) => updateQuestionDraft({ placeholder: event.target.value })} />
+                  </label>
+                  <label>
+                    Yardım metni
+                    <input value={questionDraft.helpText ?? ""} onChange={(event) => updateQuestionDraft({ helpText: event.target.value })} />
+                  </label>
 
-            {questionDraft.type === "range" ? (
-              <div className="config-grid">
-                <label>
-                  Min
-                  <input type="number" value={questionDraft.config?.min ?? 0} onChange={(event) => updateQuestionConfig({ min: Number(event.target.value) })} />
-                </label>
-                <label>
-                  Max
-                  <input type="number" value={questionDraft.config?.max ?? 10} onChange={(event) => updateQuestionConfig({ max: Number(event.target.value) })} />
-                </label>
-                <label>
-                  Step
-                  <input type="number" value={questionDraft.config?.step ?? 1} onChange={(event) => updateQuestionConfig({ step: Number(event.target.value) })} />
-                </label>
-              </div>
-            ) : null}
+                  {questionDraft.type === "range" ? (
+                    <div className="config-grid">
+                      <label>
+                        Min
+                        <input type="number" value={questionDraft.config?.min ?? 0} onChange={(event) => updateQuestionConfig({ min: Number(event.target.value) })} />
+                      </label>
+                      <label>
+                        Max
+                        <input type="number" value={questionDraft.config?.max ?? 10} onChange={(event) => updateQuestionConfig({ max: Number(event.target.value) })} />
+                      </label>
+                      <label>
+                        Step
+                        <input type="number" value={questionDraft.config?.step ?? 1} onChange={(event) => updateQuestionConfig({ step: Number(event.target.value) })} />
+                      </label>
+                    </div>
+                  ) : null}
 
-            {questionDraft.type === "media" ? (
-              <div className="config-grid">
-                <label>
-                  Maksimum dosya
-                  <input type="number" value={questionDraft.config?.maxFiles ?? 1} onChange={(event) => updateQuestionConfig({ maxFiles: Number(event.target.value) })} />
-                </label>
-                <div className="assignment-picker">
-                  {mediaMimeOptions.map((option) => {
-                    const selectedMimeTypes = questionDraft.config?.allowedMimeTypes ?? [];
-
-                    return (
-                      <label key={option.value}>
-                        <input
-                          type="checkbox"
-                          checked={selectedMimeTypes.includes(option.value)}
-                          onChange={() =>
+                  {questionDraft.type === "media" ? (
+                    <div className="media-config">
+                      <label>
+                        Maksimum dosya
+                        <input type="number" value={questionDraft.config?.maxFiles ?? 1} onChange={(event) => updateQuestionConfig({ maxFiles: Number(event.target.value) })} />
+                      </label>
+                      <label>
+                        İzin verilen medya tipleri
+                        <select
+                          className="multi-select-box"
+                          multiple
+                          value={questionDraft.config?.allowedMimeTypes ?? []}
+                          onChange={(event) =>
                             updateQuestionConfig({
-                              allowedMimeTypes: selectedMimeTypes.includes(option.value)
-                                ? selectedMimeTypes.filter((mimeType) => mimeType !== option.value)
-                                : [...selectedMimeTypes, option.value]
+                              allowedMimeTypes: Array.from(event.currentTarget.selectedOptions).map((option) => option.value)
                             })
                           }
-                        />
-                        {option.label}
+                        >
+                          {mediaMimeOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
                       </label>
-                    );
-                  })}
+                      <div className="selected-mime-list">
+                        {(questionDraft.config?.allowedMimeTypes ?? []).map((mimeType) => {
+                          const option = mediaMimeOptions.find((item) => item.value === mimeType);
+
+                          return (
+                            <span key={mimeType}>
+                              {option?.label ?? mimeType}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="question-editor-actions">
+                    <button className="secondary-button" type="button" onClick={() => setQuestionDraft(null)}>
+                      Vazgeç
+                    </button>
+                    <button className="primary-button" type="button" disabled={isSaving} onClick={saveQuestion}>
+                      Kaydet
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </aside>
             ) : null}
           </div>
         </Modal>

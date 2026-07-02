@@ -12,6 +12,7 @@ export type PreparedMedia = {
 
 const maxImageSize = 1600;
 const jpegQuality = 0.78;
+const compressibleImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function loadImage(file: File) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -63,6 +64,18 @@ export async function prepareMediaFile(file: File): Promise<PreparedMedia> {
       file,
       previewUrl: URL.createObjectURL(file),
       type: "pdf",
+      originalName: file.name,
+      originalSize: file.size,
+      compressedSize: file.size
+    };
+  }
+
+  if (!compressibleImageTypes.has(file.type)) {
+    return {
+      id: crypto.randomUUID(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      type: "image",
       originalName: file.name,
       originalSize: file.size,
       compressedSize: file.size

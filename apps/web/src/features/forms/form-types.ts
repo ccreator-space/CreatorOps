@@ -81,5 +81,13 @@ export const mediaMimeOptions = [
   {
     label: "PDF",
     value: "application/pdf"
+  },
+  {
+    label: "GIF",
+    value: "image/gif"
+  },
+  {
+    label: "SVG",
+    value: "image/svg+xml"
   }
 ];
