@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { AuthProvider } from "./features/auth/AuthProvider";
+import { LoginPage } from "./features/auth/LoginPage";
 import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
 import { useAuth } from "./features/auth/AuthProvider";
@@ -30,6 +31,10 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    if (!viewer) {
+      return;
+    }
+
     if (currentView === "contents" && viewer.role !== "admin") {
       window.location.hash = "calendar";
     }
@@ -37,7 +42,11 @@ function AppContent() {
     if (currentView === "revisions" && viewer.role === "admin") {
       window.location.hash = "calendar";
     }
-  }, [currentView, viewer.role]);
+  }, [currentView, viewer]);
+
+  if (!viewer) {
+    return <LoginPage />;
+  }
 
   const visibleView =
     currentView === "contents" && viewer.role === "admin"

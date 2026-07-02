@@ -26,6 +26,11 @@ const reviewActionSchema = z.object({
   note: z.string().trim().optional()
 });
 
+const resubmitPostSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1)
+});
+
 type PostWithAuthor = SocialPost & {
   author: User;
   reviews?: ReviewEvent[];
@@ -140,6 +145,77 @@ postsRouter.post("/:postId/review", requireRole("admin"), async (request, respon
           actorId: currentUser.id,
           status: nextStatus,
           note: payload.note
+        }
+      });
+
+      return {
+        ...updatedPost,
+        reviews: [review]
+      };
+    });
+
+    response.json({
+      data: serializePost(post)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+postsRouter.post("/:postId/resubmit", async (request, response, next) => {
+  try {
+    const { postId } = request.params;
+    const payload = resubmitPostSchema.parse(request.body);
+    const currentUser = response.locals.currentUser;
+
+    const existingPost = await prisma.socialPost.findUnique({
+      where: {
+        id: postId
+      }
+    });
+
+    if (!existingPost) {
+      response.status(404).json({
+        message: "Post not found"
+      });
+      return;
+    }
+
+    if (existingPost.authorId !== currentUser.id) {
+      response.status(403).json({
+        message: "Users can only resubmit their own posts"
+      });
+      return;
+    }
+
+    if (existingPost.status !== "revision_requested") {
+      response.status(400).json({
+        message: "Only revision requested posts can be resubmitted"
+      });
+      return;
+    }
+
+    const post = await prisma.$transaction(async (tx) => {
+      const updatedPost = await tx.socialPost.update({
+        where: {
+          id: postId
+        },
+        data: {
+          title: payload.title.trim(),
+          content: payload.content.trim(),
+          status: "pending_review"
+        },
+        include: {
+          author: true
+        }
+      });
+
+      const review = await tx.reviewEvent.create({
+        data: {
+          postId,
+          actorId: currentUser.id,
+          status: "pending_review",
+          note: "Tekrar onaya gönderildi"
         }
       });
 

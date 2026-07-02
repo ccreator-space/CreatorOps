@@ -32,6 +32,50 @@ textarea {
   font: inherit;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.login-page {
+  align-items: center;
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-panel {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  display: grid;
+  gap: 22px;
+  max-width: 420px;
+  padding: 28px;
+  width: 100%;
+}
+
+.login-panel h1 {
+  margin: 4px 0 0;
+}
+
+.login-panel label {
+  color: #52605a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.login-panel select {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  min-height: 40px;
+  padding: 0 10px;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
@@ -99,6 +143,20 @@ textarea {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.viewer-label {
+  color: #69766e;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.viewer-panel p {
+  color: #69766e;
+  margin: 4px 0 0;
 }
 
 .viewer-panel select {
@@ -192,6 +250,7 @@ textarea {
 }
 
 .primary-button,
+.secondary-button,
 .icon-button {
   align-items: center;
   border: 1px solid transparent;
@@ -211,6 +270,20 @@ textarea {
 }
 
 .primary-button.is-full {
+  width: 100%;
+}
+
+.secondary-button {
+  background: #ffffff;
+  border-color: #dfe4df;
+  color: #172026;
+  font-weight: 700;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.secondary-button.is-full {
   width: 100%;
 }
 
@@ -378,6 +451,28 @@ textarea {
   padding: 10px 12px;
   resize: vertical;
   width: 100%;
+}
+
+.revision-editor {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.revision-editor label {
+  color: #52605a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.revision-editor input,
+.revision-editor textarea {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  padding: 10px 12px;
 }
 
 .row-actions {

@@ -55,6 +55,10 @@ export function ContentListPage() {
   const [activePostId, setActivePostId] = useState<string | null>(null);
 
   async function loadPosts() {
+    if (!viewer) {
+      return;
+    }
+
     setStatusMessage("İçerikler yükleniyor.");
 
     try {
@@ -79,9 +83,13 @@ export function ContentListPage() {
 
   useEffect(() => {
     void loadPosts();
-  }, [statusFilter, viewer.id]);
+  }, [statusFilter, viewer?.id]);
 
   const handleReview = async (postId: string, action: ReviewAction) => {
+    if (!viewer) {
+      return;
+    }
+
     const note = notes[postId]?.trim();
 
     if (action === "request_revision" && !note) {
@@ -121,6 +129,10 @@ export function ContentListPage() {
       setActivePostId(null);
     }
   };
+
+  if (!viewer) {
+    return null;
+  }
 
   return (
     <section className="list-page">

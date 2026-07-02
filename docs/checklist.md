@@ -21,14 +21,18 @@
 - [x] Drag/drop sonrası sheet tarih ve kullanıcı dolu açılıyor
 - [x] Seçili gün sonrası yeni ekle sheet'i tarih dolu açılıyor
 - [x] Faz 1 mock login selector eklendi
+- [x] Faz 5 basit giriş ekranı eklendi
+- [x] Faz 5 çıkış aksiyonu eklendi
+- [x] Sidebar oturum bilgisine göre güncellendi
 - [x] Faz 1 role göre sidebar görünürlüğü eklendi
 - [x] Faz 1 role göre avatar listesi filtrelendi
 - [x] Gerçek drag and drop davranışı
 - [x] Takvim atamaları için API bağlantıları
 - [x] Admin içerikler sayfasını route'a bağlama
-- [ ] Kullanıcı revizeler sayfasını route'a bağlama
+- [x] Kullanıcı revizeler sayfasını route'a bağlama
 - [x] Admin içerikler sayfasını API'ye bağlama
 - [x] Admin içerikler sayfasına durum filtresi ekleme
+- [x] Kullanıcı revizeler sayfasını API'ye bağlama
 
 ## Backend
 
@@ -46,6 +50,7 @@
 - [ ] Role-based access control
 - [x] Review action endpointleri
 - [x] Review event kaydı
+- [x] Kullanıcı revizyon tekrar gönderme endpointi
 
 ## Database
 
@@ -69,5 +74,5 @@
 - [x] Admin içeriği reject edebilecek
 - [x] Admin revize isteyebilecek
 - [x] Admin review event kaydı oluşturabilecek
-- [ ] Kullanıcı revize edilen içeriği düzenleyebilecek
-- [ ] Kullanıcı içeriği tekrar onaya gönderebilecek
+- [x] Kullanıcı revize edilen içeriği düzenleyebilecek
+- [x] Kullanıcı içeriği tekrar onaya gönderebilecek

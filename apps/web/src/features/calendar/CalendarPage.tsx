@@ -37,6 +37,11 @@ export function CalendarPage() {
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
   useEffect(() => {
+    if (!viewer) {
+      return;
+    }
+
+    const viewerId = viewer.id;
     let isCurrent = true;
 
     async function loadAssignments() {
@@ -45,7 +50,7 @@ export function CalendarPage() {
       try {
         const response = await fetch(`${apiUrl}/assignments?month=2026-07`, {
           headers: {
-            "x-user-id": viewer.id
+            "x-user-id": viewerId
           }
         });
 
@@ -72,7 +77,7 @@ export function CalendarPage() {
     return () => {
       isCurrent = false;
     };
-  }, [viewer.id]);
+  }, [viewer]);
 
   const days = useMemo(() => {
     return Array.from({ length: 35 }, (_, index) => {
@@ -89,6 +94,10 @@ export function CalendarPage() {
 
   const handleDrop = async (event: DragEvent<HTMLButtonElement>, date: string) => {
     event.preventDefault();
+
+    if (!viewer) {
+      return;
+    }
 
     const userId =
       event.dataTransfer.getData("application/x-shipin-user-id") ||
@@ -148,6 +157,10 @@ export function CalendarPage() {
     });
     setIsSheetOpen(true);
   };
+
+  if (!viewer) {
+    return null;
+  }
 
   return (
     <section className="calendar-page">

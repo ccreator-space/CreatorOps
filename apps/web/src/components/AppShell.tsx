@@ -1,4 +1,4 @@
-import { CalendarDays, FileCheck2, RotateCcw } from "lucide-react";
+import { CalendarDays, FileCheck2, LogOut, RotateCcw } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "../features/auth/AuthProvider";
 
@@ -8,7 +8,12 @@ type AppShellProps = {
 };
 
 export function AppShell({ children, currentView }: AppShellProps) {
-  const { viewer, users, setViewerId } = useAuth();
+  const { viewer, logout } = useAuth();
+
+  if (!viewer) {
+    return null;
+  }
+
   const isAdmin = viewer.role === "admin";
 
   return (
@@ -44,18 +49,15 @@ export function AppShell({ children, currentView }: AppShellProps) {
         </nav>
 
         <div className="viewer-panel">
-          <label htmlFor="viewer-select">Mock login</label>
-          <select
-            id="viewer-select"
-            value={viewer.id}
-            onChange={(event) => setViewerId(event.target.value)}
-          >
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
+          <div>
+            <span className="viewer-label">Oturum</span>
+            <strong>{viewer.name}</strong>
+            <p>{viewer.role === "admin" ? "Admin" : "Kullanıcı"}</p>
+          </div>
+          <button className="secondary-button is-full" type="button" onClick={logout}>
+            <LogOut size={16} />
+            Çıkış yap
+          </button>
         </div>
       </aside>
 

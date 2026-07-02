@@ -57,6 +57,9 @@ Amaç: Onay sorumlusunun içerikleri yönetebilmesini sağlamak.
 
 Amaç: Normal kullanıcının revize istenen içerikleri düzeltmesini sağlamak.
 
+- Basit giriş ekranı
+- Kullanıcı seçerek giriş yapma
+- Sidebar'da oturum bilgisi ve çıkış aksiyonu
 - Kullanıcı sidebar'da `Revizeler`
 - Revize istenen içerik listesi
 - Düzenle icon butonu

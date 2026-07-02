@@ -2,10 +2,11 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from "re
 import { users, type UserSummary } from "../../lib/mock-data";
 
 type AuthContextValue = {
-  viewer: UserSummary;
+  viewer: UserSummary | null;
   users: UserSummary[];
   visibleUsers: UserSummary[];
-  setViewerId: (userId: string) => void;
+  login: (userId: string) => void;
+  logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -16,22 +17,26 @@ type AuthProviderProps = {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [viewerId, setViewerIdState] = useState(() => {
-    return localStorage.getItem("shipin.viewerId") ?? "user-1";
+    return localStorage.getItem("shipin.viewerId");
   });
 
-  const viewer = users.find((user) => user.id === viewerId) ?? users[0];
+  const viewer = users.find((user) => user.id === viewerId) ?? null;
 
   const value = useMemo<AuthContextValue>(() => {
     const visibleUsers =
-      viewer.role === "admin" ? users : users.filter((user) => user.id === viewer.id);
+      !viewer ? [] : viewer.role === "admin" ? users : users.filter((user) => user.id === viewer.id);
 
     return {
       viewer,
       users,
       visibleUsers,
-      setViewerId: (userId: string) => {
+      login: (userId: string) => {
         localStorage.setItem("shipin.viewerId", userId);
         setViewerIdState(userId);
+      },
+      logout: () => {
+        localStorage.removeItem("shipin.viewerId");
+        setViewerIdState(null);
       }
     };
   }, [viewer]);
