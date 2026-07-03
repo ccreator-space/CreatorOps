@@ -1350,7 +1350,7 @@ button:disabled {
 
 .settings-page {
   display: grid;
-  gap: 16px;
+  gap: 10px;
 }
 
 .settings-tabs {
@@ -1358,6 +1358,7 @@ button:disabled {
   border: 1px solid #dfe4df;
   border-radius: 8px;
   display: inline-flex;
+  margin-top: -12px;
   padding: 4px;
   width: fit-content;
 }
@@ -1368,7 +1369,8 @@ button:disabled {
   border-radius: 6px;
   color: #52605a;
   cursor: pointer;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 600;
   min-height: 34px;
   padding: 0 12px;
 }
@@ -1384,8 +1386,15 @@ button:disabled {
   border-radius: 8px;
   display: grid;
   gap: 18px;
-  max-width: 760px;
+  width: 100%;
   padding: 18px;
+}
+
+.settings-profile-grid {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 132px minmax(0, 1fr);
 }
 
 .settings-panel label {
@@ -1419,19 +1428,19 @@ button:disabled {
 }
 
 .settings-media-preview {
-  height: 112px;
-  width: 112px;
+  height: 132px;
+  width: 132px;
 }
 
 .settings-media-preview img {
   border-radius: 50%;
-  height: 88px;
+  height: 96px;
   object-fit: cover;
-  width: 88px;
+  width: 96px;
 }
 
 .settings-logo-preview {
-  min-height: 140px;
+  min-height: 180px;
   padding: 20px;
 }
 
@@ -1448,6 +1457,11 @@ button:disabled {
   font-size: 13px;
   font-weight: 700;
   gap: 8px;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .submission-detail {
@@ -1577,5 +1591,22 @@ button:disabled {
 
   .config-grid {
     grid-template-columns: 1fr;
+  }
+
+  .settings-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-media-preview {
+    height: 112px;
+    width: 112px;
+  }
+
+  .settings-actions {
+    justify-content: stretch;
+  }
+
+  .settings-actions .primary-button {
+    width: 100%;
   }
 }

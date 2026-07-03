@@ -174,33 +174,37 @@ export function SettingsPage() {
 
       {activeTab === "profile" ? (
         <form className="settings-panel" onSubmit={saveProfile}>
-          <div className="settings-media-preview">
-            {avatarSrc ? <img alt={viewer.name} src={avatarSrc} /> : <UserRound size={42} />}
+          <div className="settings-profile-grid">
+            <div className="settings-media-preview">
+              {avatarSrc ? <img alt={viewer.name} src={avatarSrc} /> : <UserRound size={42} />}
+            </div>
+
+            <div className="form-grid">
+              <label>
+                Name
+                <input value={name} onChange={(event) => setName(event.target.value)} />
+              </label>
+              <label>
+                Email
+                <input value={viewer.email} readOnly />
+              </label>
+              <label>
+                Role
+                <input value={viewer.role === "admin" ? "Admin" : "User"} readOnly />
+              </label>
+              <label>
+                Avatar
+                <input accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" type="file" onChange={updateAvatar} />
+              </label>
+            </div>
           </div>
 
-          <div className="form-grid">
-            <label>
-              Name
-              <input value={name} onChange={(event) => setName(event.target.value)} />
-            </label>
-            <label>
-              Email
-              <input value={viewer.email} readOnly />
-            </label>
-            <label>
-              Role
-              <input value={viewer.role === "admin" ? "Admin" : "User"} readOnly />
-            </label>
-            <label>
-              Avatar
-              <input accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" type="file" onChange={updateAvatar} />
-            </label>
+          <div className="settings-actions">
+            <button className="primary-button" type="submit" disabled={isSavingProfile}>
+              <Save size={18} />
+              {isSavingProfile ? "Saving..." : "Save profile"}
+            </button>
           </div>
-
-          <button className="primary-button" type="submit" disabled={isSavingProfile}>
-            <Save size={18} />
-            {isSavingProfile ? "Saving..." : "Save profile"}
-          </button>
         </form>
       ) : null}
 
@@ -215,10 +219,12 @@ export function SettingsPage() {
             <input accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" type="file" onChange={updateLogo} />
           </label>
 
-          <button className="primary-button" type="submit" disabled={isSavingLogo}>
-            <ImageUp size={18} />
-            {isSavingLogo ? "Uploading..." : "Save logo"}
-          </button>
+          <div className="settings-actions">
+            <button className="primary-button" type="submit" disabled={isSavingLogo}>
+              <ImageUp size={18} />
+              {isSavingLogo ? "Uploading..." : "Save logo"}
+            </button>
+          </div>
         </form>
       ) : null}
     </section>
