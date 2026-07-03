@@ -440,6 +440,13 @@ button:disabled {
   width: 20px;
 }
 
+.platform-logo {
+  display: block;
+  flex: 0 0 auto;
+  height: 16px;
+  width: 16px;
+}
+
 .cell-post.is-pending_review {
   border-left-color: #d69e00;
 }

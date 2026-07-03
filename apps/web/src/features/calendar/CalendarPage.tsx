@@ -1,4 +1,4 @@
-import { Instagram, Linkedin, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
 import { AvatarStack } from "../../components/AvatarStack";
@@ -41,6 +41,38 @@ type SheetDefaults = {
   date?: string;
   userId?: string;
 };
+
+function LinkedInLogo() {
+  return (
+    <svg className="platform-logo" viewBox="0 0 24 24" aria-label="LinkedIn" role="img">
+      <rect width="24" height="24" rx="5" fill="#0A66C2" />
+      <path
+        fill="#ffffff"
+        d="M7.15 9.62h3.02v8.23H7.15V9.62Zm1.51-3.98c.97 0 1.72.68 1.72 1.56 0 .9-.75 1.58-1.72 1.58-.96 0-1.71-.68-1.71-1.58 0-.88.75-1.56 1.71-1.56Zm3.16 3.98h2.9v1.13h.04c.4-.75 1.38-1.32 2.54-1.32 2.45 0 3.22 1.47 3.22 3.67v4.75h-3.02v-4.19c0-1-.02-2.07-1.33-2.07-1.33 0-1.53 1.01-1.53 2.01v4.25h-2.82V9.62Z"
+      />
+    </svg>
+  );
+}
+
+function InstagramLogo() {
+  return (
+    <svg className="platform-logo" viewBox="0 0 24 24" aria-label="Instagram" role="img">
+      <defs>
+        <linearGradient id="instagram-logo-gradient" x1="2.5" x2="21.5" y1="21.5" y2="2.5" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#FEDA75" />
+          <stop offset="0.28" stopColor="#FA7E1E" />
+          <stop offset="0.5" stopColor="#D62976" />
+          <stop offset="0.75" stopColor="#962FBF" />
+          <stop offset="1" stopColor="#4F5BD5" />
+        </linearGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#instagram-logo-gradient)" />
+      <rect x="6.5" y="6.5" width="11" height="11" rx="3.2" fill="none" stroke="#ffffff" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="3" fill="none" stroke="#ffffff" strokeWidth="1.8" />
+      <circle cx="16.1" cy="7.9" r="1.05" fill="#ffffff" />
+    </svg>
+  );
+}
 
 export function CalendarPage() {
   const { authHeaders, viewer, visibleUsers } = useAuth();
@@ -222,11 +254,7 @@ export function CalendarPage() {
                       src={post.author.avatarUrl ?? ""}
                       title={post.author.name}
                     />
-                    {post.platform === "instagram" ? (
-                      <Instagram aria-label="Instagram" size={14} />
-                    ) : (
-                      <Linkedin aria-label="LinkedIn" size={14} />
-                    )}
+                    {post.platform === "instagram" ? <InstagramLogo /> : <LinkedInLogo />}
                   </span>
                 ))}
               </div>
