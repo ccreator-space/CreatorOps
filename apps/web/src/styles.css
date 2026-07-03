@@ -153,6 +153,11 @@ button:disabled {
   gap: 6px;
 }
 
+.nav-list-secondary {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
 .nav-link {
   align-items: center;
   border-radius: 8px;
@@ -192,7 +197,7 @@ button:disabled {
   border-top: 1px solid #dfe4df;
   display: grid;
   gap: 8px;
-  margin-top: auto;
+  margin-top: 12px;
   padding-top: 18px;
 }
 
@@ -1341,6 +1346,108 @@ button:disabled {
   font-weight: 800;
   min-height: 28px;
   padding: 0 10px;
+}
+
+.settings-page {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-tabs {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  display: inline-flex;
+  padding: 4px;
+  width: fit-content;
+}
+
+.settings-tabs button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #52605a;
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.settings-tabs button.is-active {
+  background: #eef2ee;
+  color: #172026;
+}
+
+.settings-panel {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  display: grid;
+  gap: 18px;
+  max-width: 760px;
+  padding: 18px;
+}
+
+.settings-panel label {
+  color: #52605a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.settings-panel input {
+  border: 1px solid #cfd8d0;
+  border-radius: 8px;
+  color: #172026;
+  padding: 10px 12px;
+}
+
+.settings-panel input[readonly] {
+  background: #f6f8f6;
+  color: #69766e;
+}
+
+.settings-media-preview,
+.settings-logo-preview {
+  align-items: center;
+  background: #f6f8f6;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.settings-media-preview {
+  height: 112px;
+  width: 112px;
+}
+
+.settings-media-preview img {
+  border-radius: 50%;
+  height: 88px;
+  object-fit: cover;
+  width: 88px;
+}
+
+.settings-logo-preview {
+  min-height: 140px;
+  padding: 20px;
+}
+
+.settings-logo-preview img {
+  display: block;
+  max-height: 96px;
+  max-width: 260px;
+  object-fit: contain;
+}
+
+.settings-file-field {
+  color: #52605a;
+  display: grid;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 8px;
 }
 
 .submission-detail {

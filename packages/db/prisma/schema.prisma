@@ -65,6 +65,7 @@ model User {
   role         UserRole             @default(user)
   isActive     Boolean              @default(true)
   avatarUrl    String?
+  avatarStoragePath String?
   assignments  CalendarAssignment[]
   posts        SocialPost[]                  @relation("PostAuthor")
   reviewEvents ReviewEvent[]                 @relation("ReviewActor")
@@ -74,6 +75,14 @@ model User {
   updatedAt    DateTime                      @updatedAt
 
   @@index([isActive])
+}
+
+model AppSettings {
+  id              String   @id @default("app-settings")
+  logoUrl         String?
+  logoStoragePath String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model Series {

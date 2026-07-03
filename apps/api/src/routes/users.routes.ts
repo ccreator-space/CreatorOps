@@ -2,7 +2,9 @@ import { Prisma, prisma } from "@shipin/db";
 import { Router } from "express";
 import { z } from "zod";
 import { requireRole } from "../middleware/current-user.js";
+import { imageUpload } from "../middleware/upload.js";
 import { hashPassword, serializeUser } from "../services/auth.js";
+import { deleteUpload, saveUpload } from "../services/uploads.js";
 
 export const usersRouter = Router();
 
@@ -22,6 +24,10 @@ const updateUserSchema = z.object({
   role: userRoleSchema,
   avatarUrl: z.string().trim().url().nullable().optional(),
   isActive: z.boolean()
+});
+
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(1)
 });
 
 function createAvatarUrl(name: string) {
@@ -50,6 +56,68 @@ function isUniqueConstraintError(error: unknown) {
 
 usersRouter.get("/me", (_request, response) => {
   response.json({ data: response.locals.currentUser });
+});
+
+usersRouter.patch("/me", async (request, response, next) => {
+  try {
+    const payload = updateProfileSchema.parse(request.body);
+    const currentUser = response.locals.currentUser;
+
+    const user = await prisma.user.update({
+      where: {
+        id: currentUser.id
+      },
+      data: {
+        name: payload.name
+      }
+    });
+
+    response.json({
+      data: serializeUser(user)
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+usersRouter.patch("/me/avatar", imageUpload.single("avatar"), async (request, response, next) => {
+  try {
+    const file = request.file;
+    const currentUser = response.locals.currentUser;
+
+    if (!file) {
+      response.status(400).json({
+        message: "Avatar file is required"
+      });
+      return;
+    }
+
+    const existingUser = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: currentUser.id
+      }
+    });
+    const upload = await saveUpload(file, 0, "avatars");
+    const user = await prisma.user.update({
+      where: {
+        id: currentUser.id
+      },
+      data: {
+        avatarUrl: upload.publicUrl,
+        avatarStoragePath: upload.storagePath
+      }
+    });
+
+    if (existingUser.avatarStoragePath) {
+      await deleteUpload(existingUser.avatarStoragePath);
+    }
+
+    response.json({
+      data: serializeUser(user)
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 usersRouter.get("/", async (_request, response, next) => {

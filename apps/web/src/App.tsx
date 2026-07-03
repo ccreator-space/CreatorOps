@@ -14,6 +14,7 @@ import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
 import { FormBuilderPage } from "./features/forms/FormBuilderPage";
 import { RevisionsPage } from "./features/revisions/RevisionsPage";
+import { SettingsPage } from "./features/settings/SettingsPage";
 import { PublicSubmissionPage } from "./features/submissions/PublicSubmissionPage";
 import { SeriesAssignmentsPage } from "./features/submissions/SeriesAssignmentsPage";
 import { SubmissionsPage } from "./features/submissions/SubmissionsPage";
@@ -26,7 +27,8 @@ const routeViewMap: Record<string, AppView> = {
   "/submissions": "submissions",
   "/series": "series",
   "/forms": "forms",
-  "/users": "users"
+  "/users": "users",
+  "/settings": "settings"
 };
 
 function AuthGate() {
@@ -103,6 +105,7 @@ export function App() {
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/contents" element={<ContentListPage />} />
                 <Route path="/submissions" element={<SubmissionsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 <Route element={<RoleGuard role="user" fallback="/calendar" />}>
                   <Route path="/revisions" element={<RevisionsPage />} />
                 </Route>

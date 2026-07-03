@@ -3,6 +3,17 @@ import type { UserSummary } from "../../lib/mock-data";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
+function resolveAvatarUrl(user: UserSummary): UserSummary {
+  if (!user.avatarUrl || user.avatarUrl.startsWith("http://") || user.avatarUrl.startsWith("https://")) {
+    return user;
+  }
+
+  return {
+    ...user,
+    avatarUrl: user.avatarUrl.startsWith("/uploads") ? `${apiUrl}${user.avatarUrl}` : user.avatarUrl
+  };
+}
+
 type LoginCredentials = {
   email: string;
   password: string;
@@ -70,7 +81,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const usersPayload = (await usersResponse.json()) as UsersResponse;
-    setUsers(usersPayload.data);
+    const nextUsers = usersPayload.data.map(resolveAvatarUrl);
+    setUsers(nextUsers);
+    setViewer((currentViewer) =>
+      currentViewer ? nextUsers.find((user) => user.id === currentViewer.id) ?? currentViewer : currentViewer
+    );
   }
 
   async function loadSession(activeToken: string) {
@@ -85,7 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const mePayload = (await meResponse.json()) as MeResponse;
-    setViewer(mePayload.data);
+    setViewer(resolveAvatarUrl(mePayload.data));
     await loadUsers(activeToken);
   }
 
@@ -159,7 +174,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const payload = (await response.json()) as LoginResponse;
         localStorage.setItem("shipin.token", payload.data.token);
         setToken(payload.data.token);
-        setViewer(payload.data.user);
+        setViewer(resolveAvatarUrl(payload.data.user));
         await loadSession(payload.data.token);
       },
       logout,

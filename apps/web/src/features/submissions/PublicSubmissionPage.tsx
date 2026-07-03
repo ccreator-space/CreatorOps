@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { CreatorCredit } from "../../components/CreatorCredit";
 import { MediaCarouselModal, type MediaCarouselItem } from "../../components/MediaCarouselModal";
+import { useAppSettings } from "../settings/AppSettingsProvider";
 import {
   type FormResponse,
   type SubmissionForm,
@@ -38,6 +39,7 @@ function getQuestionAccept(question: SubmissionFormQuestion) {
 }
 
 export function PublicSubmissionPage() {
+  const { logoSrc } = useAppSettings();
   const { slug = "" } = useParams();
   const [form, setForm] = useState<SubmissionForm | null>(null);
   const [commonForm, setCommonForm] = useState<CommonForm>(emptyCommonForm);
@@ -380,7 +382,7 @@ export function PublicSubmissionPage() {
       <section className="public-submit-shell">
         <header className="public-submit-header">
           <div>
-            <img className="public-submit-logo" src="/logos/shipinlogo.png" alt="Shipin" />
+            <img className="public-submit-logo" src={logoSrc} alt="Site logo" />
             <h1>{form?.title ?? "Submission Form"}</h1>
             <p>{form?.description ?? statusMessage}</p>
           </div>

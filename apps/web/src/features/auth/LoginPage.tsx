@@ -3,10 +3,12 @@ import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CreatorCredit } from "../../components/CreatorCredit";
+import { useAppSettings } from "../settings/AppSettingsProvider";
 import { useAuth } from "./AuthProvider";
 
 export function LoginPage() {
   const { login } = useAuth();
+  const { logoSrc } = useAppSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("deniz@shipin.local");
@@ -43,7 +45,7 @@ export function LoginPage() {
     <main className="login-page">
       <form className="login-panel" onSubmit={handleSubmit}>
         <div className="brand">
-          <img className="brand-logo" src="/logos/shipinlogo.png" alt="Shipin" />
+          <img className="brand-logo" src={logoSrc} alt="Site logo" />
         </div>
 
         <div>

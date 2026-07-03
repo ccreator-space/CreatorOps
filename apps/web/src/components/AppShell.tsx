@@ -1,13 +1,14 @@
-import { CalendarDays, ClipboardList, FileCheck2, FilePenLine, LogOut, Route, RotateCcw, Users } from "lucide-react";
+import { CalendarDays, ClipboardList, FileCheck2, FilePenLine, LogOut, Route, RotateCcw, Settings, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
+import { useAppSettings } from "../features/settings/AppSettingsProvider";
 import { CreatorCredit } from "./CreatorCredit";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
-export type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series" | "forms" | "users";
+export type AppView = "calendar" | "contents" | "revisions" | "submissions" | "series" | "forms" | "users" | "settings";
 
 type AppShellProps = {
   children: ReactNode;
@@ -20,6 +21,7 @@ type PostsCountResponse = {
 
 export function AppShell({ children, currentView }: AppShellProps) {
   const { authHeaders, viewer, logout } = useAuth();
+  const { logoSrc } = useAppSettings();
   const navigate = useNavigate();
   const [revisionCount, setRevisionCount] = useState(0);
 
@@ -76,7 +78,7 @@ export function AppShell({ children, currentView }: AppShellProps) {
     <div className="app-shell">
       <aside className="sidebar" aria-label="Main navigation">
         <div className="brand">
-          <img className="brand-logo" src="/logos/shipinlogo.png" alt="Shipin" />
+          <img className="brand-logo" src={logoSrc} alt="Site logo" />
         </div>
 
         <nav className="nav-list">
@@ -133,6 +135,16 @@ export function AppShell({ children, currentView }: AppShellProps) {
               </NavLink>
             </>
           ) : null}
+        </nav>
+
+        <nav className="nav-list nav-list-secondary">
+          <NavLink
+            className={`nav-link ${currentView === "settings" ? "is-active" : ""}`}
+            to="/settings"
+          >
+            <Settings size={18} />
+            Settings
+          </NavLink>
         </nav>
 
         <div className="viewer-panel">

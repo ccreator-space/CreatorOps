@@ -11,6 +11,7 @@ import { postsRouter } from "./routes/posts.routes.js";
 import { publicFormsRouter } from "./routes/public-forms.routes.js";
 import { publicSubmissionsRouter } from "./routes/public-submissions.routes.js";
 import { seriesRouter } from "./routes/series.routes.js";
+import { publicSettingsRouter, settingsRouter } from "./routes/settings.routes.js";
 import { submissionAssignmentsRouter, submissionsRouter } from "./routes/submissions.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import { uploadsDirectory } from "./services/uploads.js";
@@ -30,6 +31,7 @@ export function createApp() {
   app.use("/auth", authPublicRouter);
   app.use("/public/forms", publicFormsRouter);
   app.use("/public/submissions", publicSubmissionsRouter);
+  app.use("/public/settings", publicSettingsRouter);
   app.use(currentUserMiddleware);
   app.use("/auth", authRouter);
   app.use("/assignments", assignmentsRouter);
@@ -37,6 +39,7 @@ export function createApp() {
   app.use("/posts", postsRouter);
   app.use("/forms", formsRouter);
   app.use("/series", seriesRouter);
+  app.use("/settings", settingsRouter);
   app.use("/submissions", submissionsRouter);
   app.use("/submission-series-assignments", submissionAssignmentsRouter);
   app.use(errorHandler);
