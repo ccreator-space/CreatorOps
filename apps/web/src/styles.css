@@ -129,13 +129,17 @@ button:disabled {
 .brand {
   align-items: center;
   display: flex;
+  justify-content: center;
   margin-bottom: 32px;
+  min-height: 52px;
 }
 
 .brand-logo {
   display: block;
   height: auto;
-  max-width: 136px;
+  max-height: 52px;
+  max-width: 148px;
+  object-fit: contain;
   width: 100%;
 }
 
@@ -198,12 +202,24 @@ button:disabled {
   display: grid;
   gap: 8px;
   margin-top: 12px;
-  padding-top: 18px;
+  padding: 18px 0 0;
+}
+
+.viewer-panel > div {
+  min-height: 42px;
+  padding: 0 12px;
 }
 
 .viewer-panel p {
   color: #69766e;
   margin: 4px 0 0;
+}
+
+.viewer-panel .secondary-button {
+  justify-content: flex-start;
+  min-height: 42px;
+  padding: 0 12px;
+  width: 100%;
 }
 
 .main-content {
