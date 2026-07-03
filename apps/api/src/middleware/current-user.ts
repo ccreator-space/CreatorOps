@@ -21,7 +21,7 @@ export const currentUserMiddleware: RequestHandler = async (request, response, n
       }
     });
 
-    if (!currentUser) {
+    if (!currentUser || !currentUser.isActive) {
       response.status(401).json({ message: "Unauthorized" });
       return;
     }

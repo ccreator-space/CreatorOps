@@ -85,6 +85,7 @@ export function serializeUser(user: {
   name: string;
   email: string;
   role: "admin" | "user";
+  isActive: boolean;
   avatarUrl: string | null;
 }) {
   return {
@@ -92,6 +93,7 @@ export function serializeUser(user: {
     name: user.name,
     email: user.email,
     role: user.role,
+    isActive: user.isActive,
     avatarUrl: user.avatarUrl
   };
 }

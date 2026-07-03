@@ -63,6 +63,7 @@ model User {
   email        String               @unique
   passwordHash String
   role         UserRole             @default(user)
+  isActive     Boolean              @default(true)
   avatarUrl    String?
   assignments  CalendarAssignment[]
   posts        SocialPost[]                  @relation("PostAuthor")
@@ -71,6 +72,24 @@ model User {
   seriesAssignments SubmissionSeriesAssignment[]
   createdAt    DateTime                      @default(now())
   updatedAt    DateTime                      @updatedAt
+
+  @@index([isActive])
+}
+
+model Series {
+  id          String                       @id @default(cuid())
+  slug        String                       @unique
+  title       String
+  description String
+  isActive    Boolean                      @default(true)
+  legacyType  SubmissionType?              @unique
+  forms       SubmissionForm[]
+  submissions Submission[]
+  assignments SubmissionSeriesAssignment[]
+  createdAt   DateTime                     @default(now())
+  updatedAt   DateTime                     @updatedAt
+
+  @@index([isActive])
 }
 
 model CalendarAssignment {
@@ -146,7 +165,8 @@ model ReviewEvent {
 model Submission {
   id                  String                 @id @default(cuid())
   formId              String?
-  type                SubmissionType
+  seriesId            String?
+  type                SubmissionType?
   status              SubmissionStatus       @default(new)
   submitterFirstName  String
   submitterLastName   String
@@ -156,12 +176,14 @@ model Submission {
   payload             Json
   assignedToId        String?
   form                SubmissionForm?        @relation(fields: [formId], references: [id], onDelete: SetNull)
+  series              Series?                @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   assignedTo          User?                  @relation("SubmissionAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   attachments         SubmissionAttachment[]
   createdAt           DateTime               @default(now())
   updatedAt           DateTime               @updatedAt
 
   @@index([formId])
+  @@index([seriesId])
   @@index([type])
   @@index([status])
   @@index([assignedToId])
@@ -193,13 +215,16 @@ model SubmissionForm {
   slug        String                   @unique
   title       String
   description String
-  seriesType  SubmissionType
+  seriesId    String?
+  seriesType  SubmissionType?
   isActive    Boolean                  @default(true)
+  series      Series?                  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   questions   SubmissionFormQuestion[]
   submissions Submission[]
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
 
+  @@index([seriesId])
   @@index([seriesType])
   @@index([isActive])
 }
@@ -226,13 +251,16 @@ model SubmissionFormQuestion {
 
 model SubmissionSeriesAssignment {
   id         String         @id @default(cuid())
-  seriesType SubmissionType
+  seriesId   String
+  seriesType SubmissionType?
   userId     String
+  series     Series         @relation(fields: [seriesId], references: [id], onDelete: Cascade)
   user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  @@unique([seriesType, userId])
+  @@unique([seriesId, userId])
+  @@index([seriesId])
   @@index([seriesType])
   @@index([userId])
 }

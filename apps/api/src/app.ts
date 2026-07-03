@@ -10,6 +10,7 @@ import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
 import { publicFormsRouter } from "./routes/public-forms.routes.js";
 import { publicSubmissionsRouter } from "./routes/public-submissions.routes.js";
+import { seriesRouter } from "./routes/series.routes.js";
 import { submissionAssignmentsRouter, submissionsRouter } from "./routes/submissions.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import { uploadsDirectory } from "./services/uploads.js";
@@ -35,6 +36,7 @@ export function createApp() {
   app.use("/users", usersRouter);
   app.use("/posts", postsRouter);
   app.use("/forms", formsRouter);
+  app.use("/series", seriesRouter);
   app.use("/submissions", submissionsRouter);
   app.use("/submission-series-assignments", submissionAssignmentsRouter);
   app.use(errorHandler);

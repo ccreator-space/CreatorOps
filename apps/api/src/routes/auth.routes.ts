@@ -20,7 +20,7 @@ authPublicRouter.post("/login", async (request, response, next) => {
       }
     });
 
-    if (!user || !verifyPassword(payload.password, user.passwordHash)) {
+    if (!user || !user.isActive || !verifyPassword(payload.password, user.passwordHash)) {
       response.status(401).json({
         message: "Invalid email or password"
       });

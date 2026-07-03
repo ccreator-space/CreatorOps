@@ -84,6 +84,7 @@ publicFormsRouter.get("/:slug", async (request, response, next) => {
         slug
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -125,6 +126,7 @@ publicFormsRouter.post("/:slug/submissions", postUpload.array("attachments", 10)
         slug
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -184,9 +186,13 @@ publicFormsRouter.post("/:slug/submissions", postUpload.array("attachments", 10)
     }
 
     const seriesAssignments = await prisma.submissionSeriesAssignment.findMany({
-      where: {
-        seriesType: form.seriesType
-      },
+      where: form.seriesId
+        ? {
+            seriesId: form.seriesId
+          }
+        : {
+            seriesType: form.seriesType ?? undefined
+          },
       orderBy: {
         createdAt: "asc"
       },
@@ -200,6 +206,7 @@ publicFormsRouter.post("/:slug/submissions", postUpload.array("attachments", 10)
     const submission = await prisma.submission.create({
       data: {
         formId: form.id,
+        seriesId: form.seriesId,
         type: form.seriesType,
         status: firstAssignment ? "assigned" : "new",
         submitterFirstName: payload.submitterFirstName,
@@ -234,6 +241,7 @@ publicFormsRouter.post("/:slug/submissions", postUpload.array("attachments", 10)
       include: {
         form: {
           include: {
+            series: true,
             questions: {
               orderBy: {
                 sortOrder: "asc"

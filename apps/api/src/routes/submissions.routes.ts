@@ -34,21 +34,28 @@ const seriesAssignmentsSchema = z.object({
   )
 });
 
-async function getVisibleSeriesTypes(userId: string) {
+async function getVisibleSeriesAccess(userId: string) {
   const assignments = await prisma.submissionSeriesAssignment.findMany({
     where: {
       userId
     }
   });
 
-  return assignments.map((assignment) => assignment.seriesType);
+  return {
+    seriesIds: assignments.map((assignment) => assignment.seriesId),
+    legacyTypes: assignments
+      .map((assignment) => assignment.seriesType)
+      .filter((seriesType): seriesType is NonNullable<typeof seriesType> => Boolean(seriesType))
+  };
 }
 
 submissionsRouter.get("/", async (_request, response, next) => {
   try {
     const currentUser = response.locals.currentUser;
-    const visibleSeriesTypes =
-      currentUser.role === "admin" ? [] : await getVisibleSeriesTypes(currentUser.id);
+    const visibleSeriesAccess =
+      currentUser.role === "admin"
+        ? { seriesIds: [], legacyTypes: [] }
+        : await getVisibleSeriesAccess(currentUser.id);
 
     const submissions = await prisma.submission.findMany({
       where:
@@ -60,15 +67,22 @@ submissionsRouter.get("/", async (_request, response, next) => {
                   assignedToId: currentUser.id
                 },
                 {
+                  seriesId: {
+                    in: visibleSeriesAccess.seriesIds
+                  }
+                },
+                {
                   type: {
-                    in: visibleSeriesTypes
+                    in: visibleSeriesAccess.legacyTypes
                   }
                 }
               ]
             },
       include: {
+        series: true,
         form: {
           include: {
+            series: true,
             questions: {
               orderBy: {
                 sortOrder: "asc"
@@ -101,8 +115,10 @@ submissionsRouter.patch("/:submissionId/status", async (request, response, next)
     const { submissionId } = request.params;
     const payload = updateStatusSchema.parse(request.body);
     const currentUser = response.locals.currentUser;
-    const visibleSeriesTypes =
-      currentUser.role === "admin" ? [] : await getVisibleSeriesTypes(currentUser.id);
+    const visibleSeriesAccess =
+      currentUser.role === "admin"
+        ? { seriesIds: [], legacyTypes: [] }
+        : await getVisibleSeriesAccess(currentUser.id);
 
     const existingSubmission = await prisma.submission.findUnique({
       where: {
@@ -120,7 +136,11 @@ submissionsRouter.patch("/:submissionId/status", async (request, response, next)
     const canUpdate =
       currentUser.role === "admin" ||
       existingSubmission.assignedToId === currentUser.id ||
-      visibleSeriesTypes.includes(existingSubmission.type);
+      (existingSubmission.seriesId
+        ? visibleSeriesAccess.seriesIds.includes(existingSubmission.seriesId)
+        : existingSubmission.type
+          ? visibleSeriesAccess.legacyTypes.includes(existingSubmission.type)
+          : false);
 
     if (!canUpdate) {
       response.status(403).json({
@@ -137,8 +157,10 @@ submissionsRouter.patch("/:submissionId/status", async (request, response, next)
         status: payload.status
       },
       include: {
+        series: true,
         form: {
           include: {
+            series: true,
             questions: {
               orderBy: {
                 sortOrder: "asc"
@@ -192,8 +214,10 @@ submissionsRouter.patch("/:submissionId/assign", requireRole("admin"), async (re
         status: payload.assignedToId ? "assigned" : "new"
       },
       include: {
+        series: true,
         form: {
           include: {
+            series: true,
             questions: {
               orderBy: {
                 sortOrder: "asc"
@@ -222,11 +246,12 @@ submissionAssignmentsRouter.get("/", requireRole("admin"), async (_request, resp
   try {
     const assignments = await prisma.submissionSeriesAssignment.findMany({
       include: {
+        series: true,
         user: true
       },
       orderBy: [
         {
-          seriesType: "asc"
+          seriesId: "asc"
         },
         {
           createdAt: "asc"
@@ -268,15 +293,30 @@ submissionAssignmentsRouter.put("/", requireRole("admin"), async (request, respo
       await tx.submissionSeriesAssignment.deleteMany();
 
       const rows = payload.assignments.flatMap((assignment) =>
-        assignment.userIds.map((userId) => ({
-          seriesType: assignment.seriesType,
-          userId
-        }))
+        assignment.userIds.map(async (userId) => {
+          const series = await tx.series.findUnique({
+            where: {
+              legacyType: assignment.seriesType
+            }
+          });
+
+          return series
+            ? {
+                seriesId: series.id,
+                seriesType: assignment.seriesType,
+                userId
+              }
+            : null;
+        })
       );
 
-      if (rows.length) {
+      const resolvedRows = (await Promise.all(rows)).filter(
+        (row): row is NonNullable<typeof row> => Boolean(row)
+      );
+
+      if (resolvedRows.length) {
         await tx.submissionSeriesAssignment.createMany({
-          data: rows,
+          data: resolvedRows,
           skipDuplicates: true
         });
       }
@@ -284,11 +324,12 @@ submissionAssignmentsRouter.put("/", requireRole("admin"), async (request, respo
 
     const assignments = await prisma.submissionSeriesAssignment.findMany({
       include: {
+        series: true,
         user: true
       },
       orderBy: [
         {
-          seriesType: "asc"
+          seriesId: "asc"
         },
         {
           createdAt: "asc"

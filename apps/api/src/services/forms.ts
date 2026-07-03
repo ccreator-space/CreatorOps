@@ -1,7 +1,8 @@
-import { Prisma, type SubmissionForm, type SubmissionFormQuestion } from "@shipin/db";
+import { Prisma, type Series, type SubmissionForm, type SubmissionFormQuestion } from "@shipin/db";
 
 export type FormWithQuestions = SubmissionForm & {
   questions: SubmissionFormQuestion[];
+  series?: Series | null;
 };
 
 export function serializeQuestion(question: SubmissionFormQuestion) {
@@ -25,6 +26,16 @@ export function serializeForm(form: FormWithQuestions) {
     slug: form.slug,
     title: form.title,
     description: form.description,
+    seriesId: form.seriesId,
+    series: form.series
+      ? {
+          id: form.series.id,
+          slug: form.series.slug,
+          title: form.series.title,
+          description: form.series.description,
+          isActive: form.series.isActive
+        }
+      : null,
     seriesType: form.seriesType,
     isActive: form.isActive,
     createdAt: form.createdAt.toISOString(),

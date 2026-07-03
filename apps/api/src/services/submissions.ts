@@ -4,6 +4,7 @@ import type {
   SubmissionForm,
   SubmissionFormQuestion,
   SubmissionSeriesAssignment,
+  Series,
   User
 } from "@shipin/db";
 import { serializeUser } from "./auth.js";
@@ -12,17 +13,29 @@ import { serializeForm } from "./forms.js";
 export type SubmissionWithRelations = Submission & {
   assignedTo?: User | null;
   attachments?: SubmissionAttachment[];
-  form?: (SubmissionForm & { questions: SubmissionFormQuestion[] }) | null;
+  form?: (SubmissionForm & { questions: SubmissionFormQuestion[]; series?: Series | null }) | null;
+  series?: Series | null;
 };
 
 export type SeriesAssignmentWithUser = SubmissionSeriesAssignment & {
   user: User;
+  series?: Series | null;
 };
 
 export function serializeSubmission(submission: SubmissionWithRelations) {
   return {
     id: submission.id,
     type: submission.type,
+    seriesId: submission.seriesId,
+    series: submission.series
+      ? {
+          id: submission.series.id,
+          slug: submission.series.slug,
+          title: submission.series.title,
+          description: submission.series.description,
+          isActive: submission.series.isActive
+        }
+      : null,
     status: submission.status,
     submitterFirstName: submission.submitterFirstName,
     submitterLastName: submission.submitterLastName,
@@ -54,7 +67,17 @@ export function serializeSubmission(submission: SubmissionWithRelations) {
 export function serializeSeriesAssignment(assignment: SeriesAssignmentWithUser) {
   return {
     id: assignment.id,
+    seriesId: assignment.seriesId,
     seriesType: assignment.seriesType,
+    series: assignment.series
+      ? {
+          id: assignment.series.id,
+          slug: assignment.series.slug,
+          title: assignment.series.title,
+          description: assignment.series.description,
+          isActive: assignment.series.isActive
+        }
+      : null,
     user: serializeUser(assignment.user)
   };
 }

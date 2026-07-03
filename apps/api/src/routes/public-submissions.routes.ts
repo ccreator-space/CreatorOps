@@ -87,9 +87,16 @@ publicSubmissionsRouter.post("/", postUpload.array("attachments", 10), async (re
       return;
     }
 
+    const series = await prisma.series.findUnique({
+      where: {
+        legacyType: payload.type
+      }
+    });
     const seriesAssignments = await prisma.submissionSeriesAssignment.findMany({
       where: {
-        seriesType: payload.type
+        series: {
+          legacyType: payload.type
+        }
       },
       orderBy: {
         createdAt: "asc"
@@ -103,6 +110,7 @@ publicSubmissionsRouter.post("/", postUpload.array("attachments", 10), async (re
 
     const submission = await prisma.submission.create({
       data: {
+        seriesId: series?.id,
         type: payload.type,
         status: firstAssignment ? "assigned" : "new",
         submitterFirstName: payload.submitterFirstName,
@@ -134,6 +142,7 @@ publicSubmissionsRouter.post("/", postUpload.array("attachments", 10), async (re
         }
       },
       include: {
+        series: true,
         assignedTo: true,
         attachments: {
           orderBy: {

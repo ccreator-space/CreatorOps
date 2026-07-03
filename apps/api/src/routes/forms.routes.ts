@@ -25,7 +25,8 @@ const formUpdateSchema = z.object({
   title: z.string().trim().min(1),
   description: z.string().trim().min(1),
   slug: z.string().trim().min(1).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  seriesType: submissionTypeSchema,
+  seriesId: z.string().min(1),
+  seriesType: submissionTypeSchema.nullable().optional(),
   isActive: z.boolean()
 });
 
@@ -56,6 +57,7 @@ formsRouter.get("/", async (_request, response, next) => {
   try {
     const forms = await prisma.submissionForm.findMany({
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -86,6 +88,7 @@ formsRouter.patch("/:formId", async (request, response, next) => {
       },
       data: payload,
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -132,6 +135,7 @@ formsRouter.post("/:formId/questions", async (request, response, next) => {
         id: formId
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -174,6 +178,7 @@ formsRouter.patch("/:formId/questions/:questionId", async (request, response, ne
         id: formId
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -227,6 +232,7 @@ formsRouter.delete("/:formId/questions/:questionId", async (request, response, n
         id: formId
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
@@ -266,6 +272,7 @@ formsRouter.put("/:formId/questions/reorder", async (request, response, next) =>
         id: formId
       },
       include: {
+        series: true,
         questions: {
           orderBy: {
             sortOrder: "asc"
