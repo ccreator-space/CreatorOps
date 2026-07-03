@@ -65,7 +65,7 @@ export function MediaCarouselModal({
               className="media-carousel-nav is-left"
               type="button"
               onClick={goPrevious}
-              aria-label="Önceki medya"
+              aria-label="Previous media"
             >
               <ChevronLeft size={22} />
             </button>
@@ -82,7 +82,7 @@ export function MediaCarouselModal({
               className="media-carousel-nav is-right"
               type="button"
               onClick={goNext}
-              aria-label="Sonraki medya"
+              aria-label="Next media"
             >
               <ChevronRight size={22} />
             </button>
@@ -93,7 +93,7 @@ export function MediaCarouselModal({
           <div>
             <strong>{activeItem.originalName}</strong>
             <p>
-              {activeItem.type === "pdf" ? "PDF" : "Görsel"}
+              {activeItem.type === "pdf" ? "PDF" : "Image"}
               {activeItem.mimeType ? ` · ${activeItem.mimeType}` : ""}
               {activeItem.width && activeItem.height
                 ? ` · ${activeItem.width}x${activeItem.height}`
@@ -103,19 +103,19 @@ export function MediaCarouselModal({
 
           <a className="secondary-button" href={activeItem.sourceUrl} rel="noreferrer" target="_blank">
             <ExternalLink size={16} />
-            Aç
+            Open
           </a>
         </div>
 
         {hasMultipleItems ? (
-          <div className="media-carousel-thumbs" aria-label="Medya listesi">
+          <div className="media-carousel-thumbs" aria-label="Media list">
             {items.map((item, index) => (
               <button
                 className={`media-carousel-thumb ${activeIndex === index ? "is-active" : ""}`}
                 key={item.id}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                aria-label={`${index + 1}. medyayı göster`}
+                aria-label={`Show media ${index + 1}`}
               >
                 {item.type === "image" ? (
                   <img alt={item.originalName} src={item.sourceUrl} />

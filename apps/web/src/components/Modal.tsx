@@ -15,7 +15,7 @@ export function Modal({ title, children, footer, size = "default", onClose }: Mo
       <section className={`modal ${size === "wide" ? "is-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title}>
         <header className="modal-header">
           <h2>{title}</h2>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Kapat">
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>
         </header>

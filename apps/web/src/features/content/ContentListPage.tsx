@@ -39,15 +39,15 @@ type PostsResponse = {
 };
 
 const statusLabels: Record<PostStatus, string> = {
-  draft: "Taslak",
-  pending_review: "Onay bekliyor",
-  approved: "Onaylandı",
-  rejected: "Reddedildi",
-  revision_requested: "Revize istendi"
+  draft: "Draft",
+  pending_review: "Pending review",
+  approved: "Approved",
+  rejected: "Rejected",
+  revision_requested: "Revision requested"
 };
 
 const filterLabels: Record<StatusFilter, string> = {
-  all: "Tümü",
+  all: "All",
   ...statusLabels
 };
 
@@ -66,7 +66,7 @@ export function ContentListPage() {
     viewer?.role === "admin" ? "pending_review" : "all"
   );
   const [posts, setPosts] = useState<ContentPost[]>([]);
-  const [statusMessage, setStatusMessage] = useState("İçerikler yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading content.");
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [revisionPost, setRevisionPost] = useState<ContentPost | null>(null);
   const [mediaPost, setMediaPost] = useState<ContentPost | null>(null);
@@ -82,7 +82,7 @@ export function ContentListPage() {
       return;
     }
 
-    setStatusMessage("İçerikler yükleniyor.");
+    setStatusMessage("Loading content.");
 
     try {
       const params = new URLSearchParams();
@@ -96,7 +96,7 @@ export function ContentListPage() {
       });
 
       if (!response.ok) {
-        throw new Error("İçerikler alınamadı.");
+        throw new Error("Content could not be loaded.");
       }
 
       const payload = (await response.json()) as PostsResponse;
@@ -104,7 +104,7 @@ export function ContentListPage() {
       setStatusMessage("");
     } catch {
       setPosts([]);
-      setStatusMessage("İçerikler alınamadı.");
+      setStatusMessage("Content could not be loaded.");
     }
   }
 
@@ -118,7 +118,7 @@ export function ContentListPage() {
     }
 
     setActivePostId(postId);
-    setStatusMessage("İşlem kaydediliyor.");
+    setStatusMessage("Saving action.");
 
     try {
       const response = await fetch(`${apiUrl}/posts/${postId}/review`, {
@@ -134,17 +134,17 @@ export function ContentListPage() {
       });
 
       if (!response.ok) {
-        throw new Error("İşlem kaydedilemedi.");
+        throw new Error("Action could not be saved.");
       }
 
-      toast.success("İşlem kaydedildi.");
-      setStatusMessage("İşlem kaydedildi.");
+      toast.success("Action saved.");
+      setStatusMessage("Action saved.");
       setRevisionPost(null);
       setRevisionNote("");
       await loadPosts();
     } catch {
-      toast.error("İşlem kaydedilemedi.");
-      setStatusMessage("İşlem kaydedilemedi.");
+      toast.error("Action could not be saved.");
+      setStatusMessage("Action could not be saved.");
     } finally {
       setActivePostId(null);
     }
@@ -156,7 +156,7 @@ export function ContentListPage() {
     }
 
     setActivePostId(deletePost.id);
-    setStatusMessage("İçerik siliniyor.");
+    setStatusMessage("Deleting content.");
 
     try {
       const response = await fetch(`${apiUrl}/posts/${deletePost.id}`, {
@@ -165,16 +165,16 @@ export function ContentListPage() {
       });
 
       if (!response.ok) {
-        throw new Error("İçerik silinemedi.");
+        throw new Error("Content could not be deleted.");
       }
 
-      toast.success("İçerik silindi.");
+      toast.success("Content deleted.");
       setDeletePost(null);
-      setStatusMessage("İçerik silindi.");
+      setStatusMessage("Content deleted.");
       await loadPosts();
     } catch {
-      toast.error("İçerik silinemedi.");
-      setStatusMessage("İçerik silinemedi.");
+      toast.error("Content could not be deleted.");
+      setStatusMessage("Content could not be deleted.");
     } finally {
       setActivePostId(null);
     }
@@ -203,7 +203,7 @@ export function ContentListPage() {
     const note = revisionNote.trim();
 
     if (!note) {
-      toast.error("Revize istemek için not gir.");
+      toast.error("Add a note before requesting a revision.");
       return;
     }
 
@@ -215,7 +215,7 @@ export function ContentListPage() {
       const baseColumns: Array<ListColumn<ContentPost>> = [
         {
           key: "content",
-          header: "İçerik",
+          header: "Content",
           render: (post) => (
             <div className="table-primary">
               <strong>{post.title}</strong>
@@ -227,7 +227,7 @@ export function ContentListPage() {
           ? [
               {
                 key: "author",
-                header: "Gönderen",
+                header: "Submitted by",
                 width: "170px",
                 render: (post: ContentPost) => post.author.name
               }
@@ -235,7 +235,7 @@ export function ContentListPage() {
           : []),
         {
           key: "date",
-          header: "Tarih",
+          header: "Date",
           width: "130px",
           render: (post) => post.scheduledDate
         },
@@ -247,7 +247,7 @@ export function ContentListPage() {
         },
         {
           key: "media",
-          header: "Medya",
+          header: "Media",
           width: "130px",
           render: (post) =>
             post.attachments.length ? (
@@ -275,7 +275,7 @@ export function ContentListPage() {
         },
         {
           key: "status",
-          header: "Durum",
+          header: "Status",
           width: "150px",
           render: (post) => <span className={`status-pill is-${post.status}`}>{statusLabels[post.status]}</span>
         }
@@ -284,7 +284,7 @@ export function ContentListPage() {
       if (!isAdmin) {
         baseColumns.push({
           key: "note",
-          header: "Revize Notu",
+          header: "Revision Note",
           render: (post) => post.latestReview?.note ?? "-"
         });
       }
@@ -301,7 +301,7 @@ export function ContentListPage() {
                 <button
                   className="icon-button"
                   type="button"
-                  aria-label="Onayla"
+                  aria-label="Approve"
                   disabled={activePostId === post.id}
                   onClick={() => handleReview(post.id, "approve")}
                 >
@@ -310,7 +310,7 @@ export function ContentListPage() {
                 <button
                   className="icon-button"
                   type="button"
-                  aria-label="Revize iste"
+                  aria-label="Request revision"
                   disabled={activePostId === post.id}
                   onClick={() => {
                     setRevisionPost(post);
@@ -322,7 +322,7 @@ export function ContentListPage() {
                 <button
                   className="icon-button"
                   type="button"
-                  aria-label="Reddet"
+                  aria-label="Reject"
                   disabled={activePostId === post.id}
                   onClick={() => handleReview(post.id, "reject")}
                 >
@@ -335,7 +335,7 @@ export function ContentListPage() {
                 <button
                   className="icon-button"
                   type="button"
-                  aria-label="Düzenle"
+                  aria-label="Edit"
                   disabled={activePostId === post.id}
                   onClick={() => openEditSheet(post)}
                 >
@@ -344,7 +344,7 @@ export function ContentListPage() {
                 <button
                   className="icon-button is-danger"
                   type="button"
-                  aria-label="Sil"
+                  aria-label="Delete"
                   disabled={activePostId === post.id}
                   onClick={() => setDeletePost(post)}
                 >
@@ -370,11 +370,11 @@ export function ContentListPage() {
   return (
     <>
       <ListPageTemplate
-        title="İçerikler"
+        title="Content"
         actions={
           <>
             <label className="filter-control">
-              Durum
+              Status
               <select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
@@ -388,7 +388,7 @@ export function ContentListPage() {
             </label>
             <button className="primary-button" type="button" onClick={openCreateSheet}>
               <Plus size={18} />
-              Yeni ekle
+              Add content
             </button>
           </>
         }
@@ -396,7 +396,7 @@ export function ContentListPage() {
         rows={posts}
         getRowId={(post) => post.id}
         statusMessage={statusMessage}
-        emptyMessage="Bu filtrede içerik yok."
+        emptyMessage="No content matches this filter."
       />
 
       <ContentSheet
@@ -412,7 +412,7 @@ export function ContentListPage() {
 
       {revisionPost ? (
         <Modal
-          title="Revize iste"
+          title="Request revision"
           onClose={() => {
             setRevisionPost(null);
             setRevisionNote("");
@@ -427,7 +427,7 @@ export function ContentListPage() {
                   setRevisionNote("");
                 }}
               >
-                Vazgeç
+                Cancel
               </button>
               <button
                 className="primary-button"
@@ -435,19 +435,19 @@ export function ContentListPage() {
                 disabled={activePostId === revisionPost.id}
                 onClick={submitRevisionRequest}
               >
-                Revize iste
+                Request revision
               </button>
             </>
           }
         >
           <div className="modal-form">
             <label>
-              Revize notu
+              Revision note
               <textarea
                 rows={5}
                 value={revisionNote}
                 onChange={(event) => setRevisionNote(event.target.value)}
-                placeholder="Kullanıcıdan beklenen değişikliği yaz"
+                placeholder="Describe the changes you want from the creator"
               />
             </label>
           </div>
@@ -456,12 +456,12 @@ export function ContentListPage() {
 
       {deletePost ? (
         <Modal
-          title="İçeriği sil"
+          title="Delete content"
           onClose={() => setDeletePost(null)}
           footer={
             <>
               <button className="secondary-button" type="button" onClick={() => setDeletePost(null)}>
-                Vazgeç
+                Cancel
               </button>
               <button
                 className="primary-button is-danger"
@@ -469,13 +469,13 @@ export function ContentListPage() {
                 disabled={activePostId === deletePost.id}
                 onClick={handleDelete}
               >
-                Sil
+                Delete
               </button>
             </>
           }
         >
           <p className="confirm-copy">
-            “{deletePost.title}” içeriği ve bağlı medya kayıtları silinecek.
+            “{deletePost.title}” and its attached media will be deleted.
           </p>
         </Modal>
       ) : null}

@@ -13,7 +13,7 @@ export function AvatarStack({ users }: AvatarStackProps) {
   };
 
   return (
-    <div className="avatar-stack" aria-label="Kayıtlı kullanıcılar">
+    <div className="avatar-stack" aria-label="Available users">
       {users.map((user) => (
         <button
           className="avatar-button"

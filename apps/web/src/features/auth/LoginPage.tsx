@@ -2,6 +2,7 @@ import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CreatorCredit } from "../../components/CreatorCredit";
 import { useAuth } from "./AuthProvider";
 
 export function LoginPage() {
@@ -16,7 +17,7 @@ export function LoginPage() {
     event.preventDefault();
 
     if (!email.trim() || !password) {
-      toast.error("E-posta ve şifre zorunlu.");
+      toast.error("Email and password are required.");
       return;
     }
 
@@ -27,12 +28,12 @@ export function LoginPage() {
         email,
         password
       });
-      toast.success("Giriş yapıldı.");
+      toast.success("Signed in.");
       navigate(typeof location.state?.from === "string" ? location.state.from : "/calendar", {
         replace: true
       });
     } catch {
-      toast.error("E-posta veya şifre hatalı.");
+      toast.error("Incorrect email or password.");
     } finally {
       setIsSubmitting(false);
     }
@@ -42,16 +43,15 @@ export function LoginPage() {
     <main className="login-page">
       <form className="login-panel" onSubmit={handleSubmit}>
         <div className="brand">
-          <span className="brand-mark">S</span>
-          <span>Shipin</span>
+          <img className="brand-logo" src="/logos/shipinlogo.png" alt="Shipin" />
         </div>
 
         <div>
-          <h1>Giriş yap</h1>
+          <h1>Sign in</h1>
         </div>
 
         <label>
-          E-posta
+          Email
           <input
             autoComplete="email"
             value={email}
@@ -61,7 +61,7 @@ export function LoginPage() {
         </label>
 
         <label>
-          Şifre
+          Password
           <input
             autoComplete="current-password"
             value={password}
@@ -72,9 +72,10 @@ export function LoginPage() {
 
         <button className="primary-button is-full" type="submit" disabled={isSubmitting}>
           <LogIn size={18} />
-          {isSubmitting ? "Giriş yapılıyor" : "Giriş yap"}
+          {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
+      <CreatorCredit />
     </main>
   );
 }

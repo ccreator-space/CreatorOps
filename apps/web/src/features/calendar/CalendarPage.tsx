@@ -6,7 +6,7 @@ import { type UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
 import { ContentSheet } from "./ContentSheet";
 
-const weekDays = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 type CalendarAssignment = {
@@ -49,7 +49,7 @@ export function CalendarPage() {
   const [posts, setPosts] = useState<CalendarPost[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
-  const [statusMessage, setStatusMessage] = useState("Takvim atamaları yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading calendar assignments.");
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
   const loadCalendarData = useCallback(async () => {
@@ -57,7 +57,7 @@ export function CalendarPage() {
       return;
     }
 
-    setStatusMessage("Takvim yükleniyor.");
+    setStatusMessage("Loading calendar.");
 
     try {
       const [assignmentsResponse, postsResponse] = await Promise.all([
@@ -70,7 +70,7 @@ export function CalendarPage() {
       ]);
 
       if (!assignmentsResponse.ok || !postsResponse.ok) {
-        throw new Error("Takvim verisi alınamadı.");
+        throw new Error("Calendar data could not be loaded.");
       }
 
       const assignmentsPayload = (await assignmentsResponse.json()) as AssignmentsResponse;
@@ -82,7 +82,7 @@ export function CalendarPage() {
     } catch {
       setAssignments([]);
       setPosts([]);
-      setStatusMessage("Takvim verisi API'den alınamadı.");
+      setStatusMessage("Calendar data could not be loaded from the API.");
     }
   }, [viewer?.id]);
 
@@ -121,7 +121,7 @@ export function CalendarPage() {
 
     setSelectedDate(date);
     setIsSavingAssignment(true);
-    setStatusMessage("Atama kaydediliyor.");
+    setStatusMessage("Saving assignment.");
 
     try {
       const response = await fetch(`${apiUrl}/assignments`, {
@@ -137,7 +137,7 @@ export function CalendarPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Atama kaydedilemedi.");
+        throw new Error("Assignment could not be saved.");
       }
 
       const payload = (await response.json()) as AssignmentResponse;
@@ -150,16 +150,16 @@ export function CalendarPage() {
 
         return [...withoutDuplicate, payload.data];
       });
-      toast.success("Atama kaydedildi.");
-      setStatusMessage("Atama kaydedildi.");
+      toast.success("Assignment saved.");
+      setStatusMessage("Assignment saved.");
       setSheetDefaults({
         date,
         userId
       });
       setIsSheetOpen(true);
     } catch {
-      toast.error("Atama kaydedilemedi.");
-      setStatusMessage("Atama kaydedilemedi.");
+      toast.error("Assignment could not be saved.");
+      setStatusMessage("Assignment could not be saved.");
     } finally {
       setIsSavingAssignment(false);
     }
@@ -179,7 +179,7 @@ export function CalendarPage() {
   return (
     <section className="calendar-page">
       <header className="page-header">
-        <h1>Takvim</h1>
+        <h1>Calendar</h1>
 
         <div className="header-actions">
           <AvatarStack users={visibleUsers} />
@@ -189,14 +189,14 @@ export function CalendarPage() {
             onClick={openNewContentSheet}
           >
             <Plus size={18} />
-            Yeni ekle
+            Add content
           </button>
         </div>
       </header>
 
       {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
 
-      <div className="calendar-grid" role="grid" aria-label="İçerik takvimi">
+      <div className="calendar-grid" role="grid" aria-label="Content calendar">
         {weekDays.map((day) => (
           <div className="weekday" key={day}>
             {day}

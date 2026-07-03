@@ -324,7 +324,7 @@ postsRouter.post("/:postId/resubmit", async (request, response, next) => {
           postId,
           actorId: currentUser.id,
           status: "pending_review",
-          note: "Tekrar onaya gönderildi"
+          note: "Sent back for review"
         }
       });
 
@@ -509,7 +509,7 @@ postsRouter.patch("/:postId", postUpload.array("attachments", 10), async (reques
             postId,
             actorId: currentUser.id,
             status: "pending_review",
-            note: "İçerik güncellendi ve tekrar onaya gönderildi"
+            note: "Content was updated and sent back for review"
           }
         });
 

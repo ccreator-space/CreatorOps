@@ -2,6 +2,7 @@ import { Check, Eye, Send, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
+import { CreatorCredit } from "../../components/CreatorCredit";
 import { MediaCarouselModal, type MediaCarouselItem } from "../../components/MediaCarouselModal";
 import {
   type FormResponse,
@@ -43,7 +44,7 @@ export function PublicSubmissionPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [mediaAnswers, setMediaAnswers] = useState<Record<string, PreparedMedia[]>>({});
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Form yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading form.");
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -68,13 +69,13 @@ export function PublicSubmissionPage() {
     let isCurrent = true;
 
     async function loadForm() {
-      setStatusMessage("Form yükleniyor.");
+      setStatusMessage("Loading form.");
 
       try {
         const response = await fetch(`${apiUrl}/public/forms/${slug}`);
 
         if (!response.ok) {
-          throw new Error("Form alınamadı.");
+          throw new Error("Form could not be loaded.");
         }
 
         const payload = (await response.json()) as FormResponse;
@@ -86,7 +87,7 @@ export function PublicSubmissionPage() {
       } catch {
         if (isCurrent) {
           setForm(null);
-          setStatusMessage("Form bulunamadı.");
+          setStatusMessage("Form not found.");
         }
       }
     }
@@ -124,7 +125,7 @@ export function PublicSubmissionPage() {
     const maxFiles = getQuestionMaxFiles(question);
 
     if (currentFiles.length + files.length > maxFiles) {
-      toast.error(`${question.label} için en fazla ${maxFiles} dosya eklenebilir.`);
+      toast.error(`You can upload up to ${maxFiles} files for ${question.label}.`);
       return;
     }
 
@@ -134,7 +135,7 @@ export function PublicSubmissionPage() {
       : null;
 
     if (unsupportedFile) {
-      toast.error(`${unsupportedFile.name} bu alan için desteklenmiyor.`);
+      toast.error(`${unsupportedFile.name} is not supported for this field.`);
       return;
     }
 
@@ -144,9 +145,9 @@ export function PublicSubmissionPage() {
         ...currentAnswers,
         [question.key]: [...currentFiles, ...preparedFiles]
       }));
-      toast.success("Medya hazırlandı.");
+      toast.success("Media is ready.");
     } catch {
-      toast.error("Medya hazırlanamadı.");
+      toast.error("Media could not be prepared.");
     }
   };
 
@@ -212,7 +213,7 @@ export function PublicSubmissionPage() {
     event.preventDefault();
 
     if (!form || !validateForm()) {
-      toast.error("Zorunlu alanları doldur.");
+      toast.error("Please complete all required fields.");
       return;
     }
 
@@ -243,13 +244,13 @@ export function PublicSubmissionPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Başvuru gönderilemedi.");
+        throw new Error("Submission could not be sent.");
       }
 
-      toast.success("Başvuru gönderildi.");
+      toast.success("Submission sent.");
       setIsSubmitted(true);
     } catch {
-      toast.error("Başvuru gönderilemedi.");
+      toast.error("Submission could not be sent.");
     } finally {
       setIsSaving(false);
     }
@@ -288,11 +289,11 @@ export function PublicSubmissionPage() {
                     className="icon-button"
                     type="button"
                     onClick={() => setPreviewIndex(previewItems.findIndex((previewItem) => previewItem.id === item.id))}
-                    aria-label="Medyayı önizle"
+                    aria-label="Preview media"
                   >
                     <Eye size={16} />
                   </button>
-                  <button className="icon-button" type="button" onClick={() => removeMedia(question.key, item.id)} aria-label="Medyayı kaldır">
+                  <button className="icon-button" type="button" onClick={() => removeMedia(question.key, item.id)} aria-label="Remove media">
                     <X size={16} />
                   </button>
                 </div>
@@ -363,12 +364,13 @@ export function PublicSubmissionPage() {
           <span>
             <Check size={28} />
           </span>
-          <h1>Başvurunu aldık</h1>
-          <p>Ekibimiz seri akışına göre başvurunu panelde değerlendirecek.</p>
+          <h1>We received your submission</h1>
+          <p>Our team will review it in the admin panel based on the series workflow.</p>
           <button className="secondary-button" type="button" onClick={resetForm}>
-            Yeni başvuru gönder
+            Submit another response
           </button>
         </section>
+        <CreatorCredit />
       </main>
     );
   }
@@ -378,7 +380,8 @@ export function PublicSubmissionPage() {
       <section className="public-submit-shell">
         <header className="public-submit-header">
           <div>
-            <h1>{form?.title ?? "Başvuru Formu"}</h1>
+            <img className="public-submit-logo" src="/logos/shipinlogo.png" alt="Shipin" />
+            <h1>{form?.title ?? "Submission Form"}</h1>
             <p>{form?.description ?? statusMessage}</p>
           </div>
         </header>
@@ -388,24 +391,24 @@ export function PublicSubmissionPage() {
         {form ? (
           <form className="public-submit-form" onSubmit={handleSubmit}>
             <section className="form-section">
-              <h2>İletişim</h2>
+              <h2>Contact</h2>
               <div className="form-grid">
                 <label>
-                  Ad
+                  First name
                   <input
                     value={commonForm.submitterFirstName}
                     onChange={(event) => updateCommonForm("submitterFirstName", event.target.value)}
                   />
                 </label>
                 <label>
-                  Soyad
+                  Last name
                   <input
                     value={commonForm.submitterLastName}
                     onChange={(event) => updateCommonForm("submitterLastName", event.target.value)}
                   />
                 </label>
                 <label>
-                  E-posta
+                  Email
                   <input
                     type="email"
                     value={commonForm.submitterEmail}
@@ -425,14 +428,14 @@ export function PublicSubmissionPage() {
             </section>
 
             <section className="form-section">
-              <h2>Sorular</h2>
+              <h2>Questions</h2>
               <div className="form-grid">{form.questions.map(renderQuestion)}</div>
             </section>
 
             <section className="form-section">
-              <h2>Ek not</h2>
+              <h2>Additional note</h2>
               <label>
-                Eklemek istediğin başka bir şey
+                Anything else you'd like to add
                 <textarea
                   rows={4}
                   value={commonForm.note}
@@ -443,7 +446,7 @@ export function PublicSubmissionPage() {
 
             <button className="primary-button is-full" type="submit" disabled={isSaving}>
               <Send size={18} />
-              {isSaving ? "Gönderiliyor" : "Başvuruyu gönder"}
+              {isSaving ? "Submitting..." : "Submit response"}
             </button>
           </form>
         ) : null}
@@ -451,12 +454,13 @@ export function PublicSubmissionPage() {
 
       {previewIndex !== null ? (
         <MediaCarouselModal
-          title="Medya önizleme"
+          title="Media preview"
           items={previewItems}
           initialIndex={previewIndex}
           onClose={() => setPreviewIndex(null)}
         />
       ) : null}
+      <CreatorCredit />
     </main>
   );
 }

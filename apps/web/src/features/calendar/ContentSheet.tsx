@@ -149,16 +149,16 @@ export function ContentSheet({
     const maxFiles = form.platform === "instagram" ? 10 : 5;
 
     if (existingMedia.length + media.length + files.length > maxFiles) {
-      toast.error(`${form.platform === "instagram" ? "Instagram" : "LinkedIn"} için en fazla ${maxFiles} medya eklenebilir.`);
+      toast.error(`You can upload up to ${maxFiles} media files for ${form.platform === "instagram" ? "Instagram" : "LinkedIn"}.`);
       return;
     }
 
     try {
       const preparedFiles = await Promise.all(files.map(prepareMediaFile));
       setMedia((currentMedia) => [...currentMedia, ...preparedFiles]);
-      toast.success("Medya hazırlandı.");
+      toast.success("Media is ready.");
     } catch {
-      toast.error("Medya hazırlanamadı.");
+      toast.error("Media could not be prepared.");
     }
   };
 
@@ -182,19 +182,19 @@ export function ContentSheet({
     event.preventDefault();
 
     if (!form.scheduledDate || !form.assigneeId || !form.title.trim() || !form.content.trim()) {
-      toast.error("Tarih, kullanıcı, başlık ve içerik alanları zorunlu.");
-      onStatusChange("Tarih, kullanıcı, başlık ve içerik alanları zorunlu.");
+      toast.error("Date, assignee, title, and content are required.");
+      onStatusChange("Date, assignee, title, and content are required.");
       return;
     }
 
     const maxFiles = form.platform === "instagram" ? 10 : 5;
     if (existingMedia.length + media.length > maxFiles) {
-      toast.error(`${form.platform === "instagram" ? "Instagram" : "LinkedIn"} için en fazla ${maxFiles} medya eklenebilir.`);
+      toast.error(`You can upload up to ${maxFiles} media files for ${form.platform === "instagram" ? "Instagram" : "LinkedIn"}.`);
       return;
     }
 
     setIsSaving(true);
-    onStatusChange(isEditing ? "İçerik güncelleniyor." : "İçerik kaydediliyor.");
+    onStatusChange(isEditing ? "Updating content." : "Saving content.");
 
     try {
       const body = new FormData();
@@ -222,16 +222,16 @@ export function ContentSheet({
       });
 
       if (!response.ok) {
-        throw new Error(isEditing ? "İçerik güncellenemedi." : "İçerik kaydedilemedi.");
+        throw new Error(isEditing ? "Content could not be updated." : "Content could not be saved.");
       }
 
-      toast.success(isEditing ? "İçerik güncellendi." : "İçerik onaya gönderildi.");
-      onStatusChange(isEditing ? "İçerik güncellendi." : "İçerik pending_review durumuyla kaydedildi.");
+      toast.success(isEditing ? "Content updated." : "Content submitted for review.");
+      onStatusChange(isEditing ? "Content updated." : "Content saved as pending review.");
       onSaved();
       onClose();
     } catch {
-      toast.error(isEditing ? "İçerik güncellenemedi." : "İçerik kaydedilemedi.");
-      onStatusChange(isEditing ? "İçerik güncellenemedi." : "İçerik kaydedilemedi.");
+      toast.error(isEditing ? "Content could not be updated." : "Content could not be saved.");
+      onStatusChange(isEditing ? "Content could not be updated." : "Content could not be saved.");
     } finally {
       setIsSaving(false);
     }
@@ -243,19 +243,19 @@ export function ContentSheet({
 
   return (
     <div className="sheet-backdrop" role="presentation">
-      <aside className="sheet" aria-label={isEditing ? "İçerik düzenleme formu" : "Yeni içerik formu"}>
+      <aside className="sheet" aria-label={isEditing ? "Edit content form" : "New content form"}>
         <header className="sheet-header">
           <div>
-            <h2>{isEditing ? "İçeriği düzenle" : "Yeni içerik"}</h2>
+            <h2>{isEditing ? "Edit content" : "New content"}</h2>
           </div>
-          <button className="icon-button" type="button" onClick={onClose} aria-label="Kapat">
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>
         </header>
 
         <form className="content-form" onSubmit={handleSubmit}>
           <label>
-            Tarih
+            Date
             <input
               name="scheduledDate"
               type="date"
@@ -270,7 +270,7 @@ export function ContentSheet({
           </label>
 
           <label>
-            Kullanıcı
+            Assignee
             <select
               name="assigneeId"
               value={form.assigneeId}
@@ -281,7 +281,7 @@ export function ContentSheet({
                 }))
               }
             >
-              <option value="">Kullanıcı seç</option>
+              <option value="">Select assignee</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
@@ -308,10 +308,10 @@ export function ContentSheet({
           </label>
 
           <label>
-            Başlık
+            Title
             <input
               name="title"
-              placeholder="Gönderi başlığı"
+              placeholder="Post title"
               type="text"
               value={form.title}
               onChange={(event) =>
@@ -324,10 +324,10 @@ export function ContentSheet({
           </label>
 
           <label>
-            İçerik
+            Content
             <textarea
               name="content"
-              placeholder="Gönderi içeriği"
+              placeholder="Post copy"
               rows={8}
               value={form.content}
               onChange={(event) =>
@@ -340,7 +340,7 @@ export function ContentSheet({
           </label>
 
           <label>
-            Medya
+            Media
             <input
               accept="image/jpeg,image/png,image/webp,application/pdf"
               multiple
@@ -360,13 +360,13 @@ export function ContentSheet({
                   )}
                   <div>
                     <strong>{item.originalName}</strong>
-                    <p>Mevcut medya</p>
+                    <p>Existing media</p>
                   </div>
                   <button
                     className="icon-button"
                     type="button"
                     onClick={() => setPreviewIndex(previewItems.findIndex((previewItem) => previewItem.id === item.id))}
-                    aria-label="Medyayı önizle"
+                    aria-label="Preview media"
                   >
                     <Eye size={16} />
                   </button>
@@ -374,7 +374,7 @@ export function ContentSheet({
                     className="icon-button"
                     type="button"
                     onClick={() => removeExistingMedia(item.id)}
-                    aria-label="Medyayı kaldır"
+                    aria-label="Remove media"
                   >
                     <X size={16} />
                   </button>
@@ -397,11 +397,11 @@ export function ContentSheet({
                     className="icon-button"
                     type="button"
                     onClick={() => setPreviewIndex(previewItems.findIndex((previewItem) => previewItem.id === item.id))}
-                    aria-label="Medyayı önizle"
+                    aria-label="Preview media"
                   >
                     <Eye size={16} />
                   </button>
-                  <button className="icon-button" type="button" onClick={() => removeMedia(item.id)} aria-label="Medyayı kaldır">
+                  <button className="icon-button" type="button" onClick={() => removeMedia(item.id)} aria-label="Remove media">
                     <X size={16} />
                   </button>
                 </div>
@@ -410,14 +410,14 @@ export function ContentSheet({
           ) : null}
 
           <button className="primary-button is-full" type="submit" disabled={isSaving}>
-            {isSaving ? "Kaydediliyor" : isEditing ? "Güncelle" : "Kaydet"}
+            {isSaving ? "Saving..." : isEditing ? "Save changes" : "Save content"}
           </button>
         </form>
       </aside>
 
       {previewIndex !== null ? (
         <MediaCarouselModal
-          title="Medya önizleme"
+          title="Media preview"
           items={previewItems}
           initialIndex={previewIndex}
           onClose={() => setPreviewIndex(null)}

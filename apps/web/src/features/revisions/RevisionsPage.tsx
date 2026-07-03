@@ -50,14 +50,14 @@ export function RevisionsPage() {
     content: ""
   });
   const [activePostId, setActivePostId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Revizeler yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading revisions.");
 
   async function loadRevisions() {
     if (!viewer) {
       return;
     }
 
-    setStatusMessage("Revizeler yükleniyor.");
+    setStatusMessage("Loading revisions.");
 
     try {
       const response = await fetch(`${apiUrl}/posts?status=revision_requested`, {
@@ -65,7 +65,7 @@ export function RevisionsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Revizeler alınamadı.");
+        throw new Error("Revisions could not be loaded.");
       }
 
       const payload = (await response.json()) as PostsResponse;
@@ -73,7 +73,7 @@ export function RevisionsPage() {
       setStatusMessage("");
     } catch {
       setPosts([]);
-      setStatusMessage("Revizeler alınamadı.");
+      setStatusMessage("Revisions could not be loaded.");
     }
   }
 
@@ -103,13 +103,13 @@ export function RevisionsPage() {
     }
 
     if (!draft.title.trim() || !draft.content.trim()) {
-      toast.error("Başlık ve içerik zorunlu.");
-      setStatusMessage("Başlık ve içerik zorunlu.");
+      toast.error("Title and content are required.");
+      setStatusMessage("Title and content are required.");
       return;
     }
 
     setActivePostId(editingPost.id);
-    setStatusMessage("Tekrar onaya gönderiliyor.");
+    setStatusMessage("Sending back for review.");
 
     try {
       const response = await fetch(`${apiUrl}/posts/${editingPost.id}/resubmit`, {
@@ -125,16 +125,16 @@ export function RevisionsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("İçerik tekrar onaya gönderilemedi.");
+        throw new Error("Content could not be sent back for review.");
       }
 
-      toast.success("İçerik tekrar onaya gönderildi.");
+      toast.success("Content sent back for review.");
       closeEditor();
-      setStatusMessage("İçerik tekrar onaya gönderildi.");
+      setStatusMessage("Content sent back for review.");
       await loadRevisions();
     } catch {
-      toast.error("İçerik tekrar onaya gönderilemedi.");
-      setStatusMessage("İçerik tekrar onaya gönderilemedi.");
+      toast.error("Content could not be sent back for review.");
+      setStatusMessage("Content could not be sent back for review.");
     } finally {
       setActivePostId(null);
     }
@@ -144,7 +144,7 @@ export function RevisionsPage() {
     () => [
       {
         key: "content",
-        header: "İçerik",
+        header: "Content",
         render: (post) => (
           <div className="table-primary">
             <strong>{post.title}</strong>
@@ -154,7 +154,7 @@ export function RevisionsPage() {
       },
       {
         key: "date",
-        header: "Tarih",
+        header: "Date",
         width: "130px",
         render: (post) => post.scheduledDate
       },
@@ -166,7 +166,7 @@ export function RevisionsPage() {
       },
       {
         key: "media",
-        header: "Medya",
+        header: "Media",
         width: "130px",
         render: (post) =>
           post.attachments.length ? (
@@ -192,7 +192,7 @@ export function RevisionsPage() {
       },
       {
         key: "note",
-        header: "Revize Notu",
+        header: "Revision Note",
         render: (post) => post.latestReview?.note ?? "-"
       },
       {
@@ -204,7 +204,7 @@ export function RevisionsPage() {
           <button
             className="icon-button"
             type="button"
-            aria-label="Düzenle"
+            aria-label="Edit"
             onClick={() => openEditor(post)}
           >
             <Pencil size={18} />
@@ -218,22 +218,22 @@ export function RevisionsPage() {
   return (
     <>
       <ListPageTemplate
-        title="Revizeler"
+        title="Revisions"
         columns={columns}
         rows={posts}
         getRowId={(post) => post.id}
         statusMessage={statusMessage}
-        emptyMessage="Revize bekleyen içerik yok."
+        emptyMessage="No content is waiting for revision."
       />
 
       {editingPost ? (
         <Modal
-          title="Revizeyi düzenle"
+          title="Edit revision"
           onClose={closeEditor}
           footer={
             <>
               <button className="secondary-button" type="button" onClick={closeEditor}>
-                Vazgeç
+                Cancel
               </button>
               <button
                 className="primary-button"
@@ -242,18 +242,18 @@ export function RevisionsPage() {
                 onClick={handleResubmit}
               >
                 <Check size={18} />
-                Onaya gönder
+                Send for review
               </button>
             </>
           }
         >
           <div className="modal-form">
             {editingPost.latestReview?.note ? (
-              <p className="review-note">Revize notu: {editingPost.latestReview.note}</p>
+              <p className="review-note">Revision note: {editingPost.latestReview.note}</p>
             ) : null}
 
             <label>
-              Başlık
+              Title
               <input
                 value={draft.title}
                 onChange={(event) =>
@@ -266,7 +266,7 @@ export function RevisionsPage() {
             </label>
 
             <label>
-              İçerik
+              Content
               <textarea
                 rows={6}
                 value={draft.content}

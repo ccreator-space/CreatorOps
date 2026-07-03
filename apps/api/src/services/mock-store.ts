@@ -46,8 +46,8 @@ export const mockPosts: MockPost[] = [
     assigneeId: "user-2",
     scheduledDate: "2026-07-08",
     platform: "linkedin",
-    title: "Shipin topluluk duyurusu",
-    content: "Yeni dönem sosyal medya planı.",
+    title: "Shipin community update",
+    content: "New season social media plan.",
     status: "pending_review"
   },
   {
@@ -55,8 +55,8 @@ export const mockPosts: MockPost[] = [
     assigneeId: "user-3",
     scheduledDate: "2026-07-17",
     platform: "instagram",
-    title: "Ekip tanıtımı",
-    content: "Shipin sosyal medya ekibinden kısa bir tanıtım.",
+    title: "Team introduction",
+    content: "A short introduction from the Shipin social media team.",
     status: "revision_requested"
   }
 ];

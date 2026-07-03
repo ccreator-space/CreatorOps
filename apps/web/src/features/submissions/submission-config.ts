@@ -25,16 +25,16 @@ export const submissionTypes: SubmissionType[] = [
 export const submissionTypeLabels: Record<SubmissionType, string> = {
   builder_spotlight: "Builder Spotlight",
   project_highlight: "Project Highlight",
-  readme_book: "README Kitap Önerisi"
+  readme_book: "README Book Recommendation"
 };
 
 export const submissionStatusLabels: Record<SubmissionStatus, string> = {
-  new: "Yeni",
-  assigned: "Atandı",
-  in_progress: "İşleniyor",
-  approved: "Onaylandı",
-  rejected: "Reddedildi",
-  archived: "Arşivlendi"
+  new: "New",
+  assigned: "Assigned",
+  in_progress: "In Progress",
+  approved: "Approved",
+  rejected: "Rejected",
+  archived: "Archived"
 };
 
 export const submissionConfigs: Record<
@@ -49,46 +49,46 @@ export const submissionConfigs: Record<
 > = {
   builder_spotlight: {
     title: "Builder Spotlight",
-    description: "Toplulukta öne çıkarmamızı istediğin builder hikayeni paylaş.",
+    description: "Share the builder story you want us to feature in the community.",
     maxFiles: 3,
-    mediaLabel: "Profil fotoğrafı ve destekleyici görseller",
+    mediaLabel: "Profile photo and supporting visuals",
     fields: [
       {
         key: "photoContext",
-        label: "Fotoğraf için not",
+        label: "Photo note",
         type: "text",
-        placeholder: "Hangi fotoğrafı kullanmamızı istersin?"
+        placeholder: "Which photo would you like us to use?"
       },
       {
         key: "bio",
         label: "Bio",
         type: "textarea",
         required: true,
-        placeholder: "Kendini birkaç paragrafla anlat"
+        placeholder: "Tell us about yourself in a few paragraphs"
       },
       {
         key: "title",
-        label: "Ünvan",
+        label: "Title",
         type: "text",
         required: true,
         placeholder: "Founder, developer, designer..."
       },
       {
         key: "company",
-        label: "Çalıştığın yer",
+        label: "Where you work",
         type: "text",
-        placeholder: "Şirket, topluluk veya solo"
+        placeholder: "Company, community, or solo"
       },
       {
         key: "workingOn",
-        label: "Üzerine uğraştığın şeyler",
+        label: "What you're working on",
         type: "textarea",
         required: true,
-        placeholder: "Şu aralar ne inşa ediyorsun?"
+        placeholder: "What are you building these days?"
       },
       {
         key: "links",
-        label: "Öne çıkarmak istediğin linkler",
+        label: "Links you'd like us to feature",
         type: "textarea",
         placeholder: "Website, GitHub, X, portfolio..."
       }
@@ -96,101 +96,101 @@ export const submissionConfigs: Record<
   },
   project_highlight: {
     title: "Project Highlight",
-    description: "Üzerinde çalıştığın projeyi topluluğa anlatmamız için detayları gönder.",
+    description: "Send the details we need to showcase the project you're working on to the community.",
     maxFiles: 10,
-    mediaLabel: "Proje görselleri, ekran görüntüleri veya PDF",
+    mediaLabel: "Project visuals, screenshots, or PDF",
     fields: [
       {
         key: "projectName",
-        label: "Proje adı",
+        label: "Project name",
         type: "text",
         required: true
       },
       {
         key: "problem",
-        label: "Projenin çözdüğü problem",
+        label: "Problem your project solves",
         type: "textarea",
         required: true
       },
       {
         key: "description",
-        label: "Proje açıklaması",
+        label: "Project description",
         type: "textarea",
         required: true
       },
       {
         key: "projectUrl",
-        label: "Proje linki",
+        label: "Project link",
         type: "url",
         placeholder: "https://..."
       },
       {
         key: "githubUrl",
-        label: "GitHub veya demo linki",
+        label: "GitHub or demo link",
         type: "url",
         placeholder: "https://..."
       },
       {
         key: "techStack",
-        label: "Kullanılan teknolojiler",
+        label: "Technologies used",
         type: "textarea"
       },
       {
         key: "targetAudience",
-        label: "Hedef kullanıcı",
+        label: "Target audience",
         type: "textarea"
       },
       {
         key: "stage",
-        label: "Projenin aşaması",
+        label: "Project stage",
         type: "text",
-        placeholder: "Fikir, MVP, yayında, büyüyor..."
+        placeholder: "Idea, MVP, live, growing..."
       }
     ]
   },
   readme_book: {
-    title: "README Kitap Önerisi",
-    description: "README serisi için önerdiğin kitabı ve neden önemli olduğunu anlat.",
+    title: "README Book Recommendation",
+    description: "Tell us which book you're recommending for the README series and why it matters.",
     maxFiles: 3,
-    mediaLabel: "Kitap kapağı, not görseli veya PDF",
+    mediaLabel: "Book cover, notes image, or PDF",
     fields: [
       {
         key: "bookName",
-        label: "Kitap adı",
+        label: "Book title",
         type: "text",
         required: true
       },
       {
         key: "author",
-        label: "Yazar",
+        label: "Author",
         type: "text",
         required: true
       },
       {
         key: "whyRecommended",
-        label: "Neden öneriyorsun?",
+        label: "Why are you recommending it?",
         type: "textarea",
         required: true
       },
       {
         key: "bookTopic",
-        label: "Kitabın konusu",
+        label: "What is the book about?",
         type: "textarea",
         required: true
       },
       {
         key: "targetAudience",
-        label: "Kimler okumalı?",
+        label: "Who should read it?",
         type: "textarea"
       },
       {
         key: "favoriteIdea",
-        label: "Kitaptan sevdiğin bir fikir",
+        label: "A favorite idea from the book",
         type: "textarea"
       },
       {
         key: "bookLink",
-        label: "Kitap linki",
+        label: "Book link",
         type: "url",
         placeholder: "https://..."
       }

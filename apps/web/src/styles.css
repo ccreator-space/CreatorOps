@@ -37,6 +37,41 @@ button:disabled {
   opacity: 0.62;
 }
 
+.creator-credit {
+  align-items: center;
+  background: rgb(255 255 255 / 86%);
+  border: 1px solid #dfe4df;
+  border-radius: 999px;
+  bottom: 14px;
+  box-shadow: 0 10px 24px rgb(23 32 38 / 8%);
+  color: #69766e;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 700;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 9px;
+  position: fixed;
+  right: 14px;
+  text-decoration: none;
+  z-index: 15;
+}
+
+.creator-credit img {
+  display: block;
+  height: 17px;
+  width: auto;
+}
+
+.creator-credit-name {
+  color: #d92d20;
+}
+
+.creator-credit:hover {
+  border-color: #cfd8d0;
+  color: #172026;
+}
+
 .login-page {
   align-items: center;
   display: flex;
@@ -94,21 +129,23 @@ button:disabled {
 .brand {
   align-items: center;
   display: flex;
-  font-size: 18px;
-  font-weight: 700;
-  gap: 10px;
   margin-bottom: 32px;
 }
 
-.brand-mark {
-  align-items: center;
-  background: #19221f;
-  border-radius: 8px;
-  color: #ffffff;
-  display: inline-flex;
-  height: 36px;
+.brand-logo {
+  display: block;
+  height: auto;
+  max-width: 136px;
+  width: 100%;
+}
+
+.login-panel .brand {
   justify-content: center;
-  width: 36px;
+  margin-bottom: 6px;
+}
+
+.login-panel .brand-logo {
+  max-width: 168px;
 }
 
 .nav-list {
@@ -565,6 +602,31 @@ button:disabled {
   justify-content: flex-end;
 }
 
+.user-cell {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.user-cell img {
+  background: #eef2ee;
+  border: 1px solid #dfe4df;
+  border-radius: 50%;
+  display: block;
+  height: 40px;
+  width: 40px;
+}
+
+.inline-input-action {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 36px;
+}
+
+.inline-input-action .icon-button {
+  height: 40px;
+}
+
 .media-summary {
   align-items: center;
   background: transparent;
@@ -842,6 +904,16 @@ button:disabled {
   padding: 10px 12px;
 }
 
+.modal-field {
+  color: #52605a;
+  display: grid;
+  gap: 8px;
+}
+
+.modal-field strong {
+  font-size: 13px;
+}
+
 .media-carousel {
   display: grid;
   gap: 14px;
@@ -1017,6 +1089,14 @@ button:disabled {
   font-size: 34px;
   line-height: 1.15;
   margin: 0;
+}
+
+.public-submit-logo {
+  display: block;
+  height: auto;
+  margin-bottom: 24px;
+  max-width: 176px;
+  width: 100%;
 }
 
 .public-submit-header p {
@@ -1332,6 +1412,19 @@ button:disabled {
   font-weight: 700;
   gap: 8px;
   min-height: 36px;
+  padding: 0 10px;
+}
+
+.assignment-picker span {
+  align-items: center;
+  background: #eef2ee;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  color: #52605a;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 32px;
   padding: 0 10px;
 }
 
