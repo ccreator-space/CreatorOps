@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
-const fallbackLogoSrc = "/logos/shipinlogo.png";
+const fallbackLogoSrc = "/logos/cpcreator.png";
 
 type AppSettings = {
   logoUrl: string | null;
