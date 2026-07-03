@@ -38,7 +38,15 @@ export type SubmissionForm = {
   slug: string;
   title: string;
   description: string;
-  seriesType: SubmissionType;
+  seriesId?: string | null;
+  series?: {
+    id: string;
+    slug: string;
+    title: string;
+    description: string;
+    isActive: boolean;
+  } | null;
+  seriesType?: SubmissionType | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -54,15 +62,15 @@ export type FormResponse = {
 };
 
 export const questionTypeLabels: Record<FormQuestionType, string> = {
-  text: "Kısa metin",
-  textarea: "Uzun metin",
-  range: "Aralık",
-  media: "Medya",
+  text: "Short text",
+  textarea: "Long text",
+  range: "Range",
+  media: "Media",
   url: "URL",
-  email: "E-posta",
-  number: "Sayı",
-  select: "Seçim",
-  checkbox: "Onay kutusu"
+  email: "Email",
+  number: "Number",
+  select: "Select",
+  checkbox: "Checkbox"
 };
 
 export const mediaMimeOptions = [

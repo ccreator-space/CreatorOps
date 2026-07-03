@@ -30,7 +30,14 @@ type SubmissionAttachment = {
 
 type Submission = {
   id: string;
-  type: SubmissionType;
+  type?: SubmissionType | null;
+  series?: {
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    isActive: boolean;
+  } | null;
   status: SubmissionStatus;
   submitterFirstName: string;
   submitterLastName: string;
@@ -62,7 +69,7 @@ const statusOptions: SubmissionStatus[] = [
 ];
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(value));
@@ -70,6 +77,10 @@ function formatDate(value: string) {
 
 function getSubmitterName(submission: Submission) {
   return `${submission.submitterFirstName} ${submission.submitterLastName}`;
+}
+
+function getSeriesLabel(submission: Submission) {
+  return submission.series?.title ?? (submission.type ? submissionTypeLabels[submission.type] : "-");
 }
 
 function stringifyPayloadValue(value: unknown) {
@@ -89,6 +100,10 @@ function stringifyPayloadValue(value: unknown) {
 }
 
 function getFallbackQuestions(submission: Submission): SubmissionFormQuestion[] {
+  if (!submission.type) {
+    return [];
+  }
+
   return submissionConfigs[submission.type].fields.map((field, index) => ({
     id: field.key,
     key: field.key,
@@ -104,17 +119,17 @@ export function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [activeSubmission, setActiveSubmission] = useState<Submission | null>(null);
   const [mediaSubmission, setMediaSubmission] = useState<Submission | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Başvurular yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading submissions.");
   const [isSaving, setIsSaving] = useState(false);
   const isAdmin = viewer?.role === "admin";
-  const assignableUsers = users.filter((user) => user.role === "user");
+  const assignableUsers = users.filter((user) => user.role === "user" && user.isActive);
 
   async function loadSubmissions() {
     if (!viewer) {
       return;
     }
 
-    setStatusMessage("Başvurular yükleniyor.");
+    setStatusMessage("Loading submissions.");
 
     try {
       const response = await fetch(`${apiUrl}/submissions`, {
@@ -122,7 +137,7 @@ export function SubmissionsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Başvurular alınamadı.");
+        throw new Error("Submissions could not be loaded.");
       }
 
       const payload = (await response.json()) as SubmissionsResponse;
@@ -130,7 +145,7 @@ export function SubmissionsPage() {
       setStatusMessage("");
     } catch {
       setSubmissions([]);
-      setStatusMessage("Başvurular alınamadı.");
+      setStatusMessage("Submissions could not be loaded.");
     }
   }
 
@@ -154,7 +169,7 @@ export function SubmissionsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Durum güncellenemedi.");
+        throw new Error("Status could not be updated.");
       }
 
       const payload = (await response.json()) as SubmissionResponse;
@@ -164,9 +179,9 @@ export function SubmissionsPage() {
           submission.id === payload.data.id ? payload.data : submission
         )
       );
-      toast.success("Durum güncellendi.");
+      toast.success("Status updated.");
     } catch {
-      toast.error("Durum güncellenemedi.");
+      toast.error("Status could not be updated.");
     } finally {
       setIsSaving(false);
     }
@@ -188,7 +203,7 @@ export function SubmissionsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Atama güncellenemedi.");
+        throw new Error("Assignment could not be updated.");
       }
 
       const payload = (await response.json()) as SubmissionResponse;
@@ -198,9 +213,9 @@ export function SubmissionsPage() {
           submission.id === payload.data.id ? payload.data : submission
         )
       );
-      toast.success("Atama güncellendi.");
+      toast.success("Assignment updated.");
     } catch {
-      toast.error("Atama güncellenemedi.");
+      toast.error("Assignment could not be updated.");
     } finally {
       setIsSaving(false);
     }
@@ -210,13 +225,13 @@ export function SubmissionsPage() {
     () => [
       {
         key: "series",
-        header: "Seri",
+        header: "Series",
         width: "180px",
-        render: (submission) => submissionTypeLabels[submission.type]
+        render: getSeriesLabel
       },
       {
         key: "submitter",
-        header: "Gönderen",
+        header: "Submitted by",
         render: (submission) => (
           <div className="table-primary">
             <strong>{getSubmitterName(submission)}</strong>
@@ -226,19 +241,19 @@ export function SubmissionsPage() {
       },
       {
         key: "date",
-        header: "Tarih",
+        header: "Date",
         width: "180px",
         render: (submission) => formatDate(submission.createdAt)
       },
       {
         key: "assigned",
-        header: "Atanan",
+        header: "Assigned to",
         width: "160px",
         render: (submission) => submission.assignedTo?.name ?? "-"
       },
       {
         key: "media",
-        header: "Medya",
+        header: "Media",
         width: "120px",
         render: (submission) =>
           submission.attachments.length ? (
@@ -266,7 +281,7 @@ export function SubmissionsPage() {
       },
       {
         key: "status",
-        header: "Durum",
+        header: "Status",
         width: "140px",
         render: (submission) => (
           <span className={`status-pill is-${submission.status}`}>
@@ -283,7 +298,7 @@ export function SubmissionsPage() {
           <button
             className="icon-button"
             type="button"
-            aria-label="Başvuruyu görüntüle"
+            aria-label="View submission"
             onClick={() => setActiveSubmission(submission)}
           >
             <Eye size={18} />
@@ -297,12 +312,12 @@ export function SubmissionsPage() {
   return (
     <>
       <ListPageTemplate
-        title="Başvurular"
+        title="Submissions"
         columns={columns}
         rows={submissions}
         getRowId={(submission) => submission.id}
         statusMessage={statusMessage}
-        emptyMessage="Henüz başvuru yok."
+        emptyMessage="No submissions yet."
       />
 
       {activeSubmission ? (
@@ -310,7 +325,7 @@ export function SubmissionsPage() {
           <div className="submission-detail">
             <div className="submission-detail-summary">
               <span className="status-pill is-assigned">
-                {submissionTypeLabels[activeSubmission.type]}
+                {getSeriesLabel(activeSubmission)}
               </span>
               <span className={`status-pill is-${activeSubmission.status}`}>
                 {submissionStatusLabels[activeSubmission.status]}
@@ -325,7 +340,7 @@ export function SubmissionsPage() {
 
             <div className="submission-management">
               <label>
-                Durum
+                Status
                 <select
                   value={activeSubmission.status}
                   disabled={isSaving}
@@ -343,7 +358,7 @@ export function SubmissionsPage() {
 
               {isAdmin ? (
                 <label>
-                  Atanan kişi
+                  Assigned user
                   <select
                     value={activeSubmission.assignedTo?.id ?? ""}
                     disabled={isSaving}
@@ -351,7 +366,7 @@ export function SubmissionsPage() {
                       assignSubmission(activeSubmission.id, event.target.value || null)
                     }
                   >
-                    <option value="">Atanmamış</option>
+                    <option value="">Unassigned</option>
                     {assignableUsers.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.name}
@@ -374,7 +389,7 @@ export function SubmissionsPage() {
                     <p>
                       {question.type === "media"
                         ? mediaCount
-                          ? `${mediaCount} medya dosyası`
+                          ? `${mediaCount} media ${mediaCount === 1 ? "file" : "files"}`
                           : "-"
                         : stringifyPayloadValue(activeSubmission.payload[question.key])}
                     </p>
@@ -383,7 +398,7 @@ export function SubmissionsPage() {
               })}
               {activeSubmission.note ? (
                 <div className="submission-answer">
-                  <strong>Ek not</strong>
+                  <strong>Additional note</strong>
                   <p>{activeSubmission.note}</p>
                 </div>
               ) : null}
@@ -392,7 +407,7 @@ export function SubmissionsPage() {
             {activeSubmission.attachments.length ? (
               <button className="secondary-button" type="button" onClick={() => setMediaSubmission(activeSubmission)}>
                 <ImageIcon size={16} />
-                Medyayı görüntüle
+                View media
               </button>
             ) : null}
           </div>

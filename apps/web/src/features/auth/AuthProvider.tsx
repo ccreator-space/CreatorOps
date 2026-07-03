@@ -17,6 +17,7 @@ type AuthContextValue = {
   authHeaders: () => Record<string, string>;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
+  refreshUsers: () => Promise<void>;
 };
 
 type LoginResponse = {
@@ -57,6 +58,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUsers([]);
   };
 
+  async function loadUsers(activeToken: string) {
+    const usersResponse = await fetch(`${apiUrl}/users`, {
+      headers: {
+        Authorization: `Bearer ${activeToken}`
+      }
+    });
+
+    if (!usersResponse.ok) {
+      throw new Error("Users could not be loaded");
+    }
+
+    const usersPayload = (await usersResponse.json()) as UsersResponse;
+    setUsers(usersPayload.data);
+  }
+
   async function loadSession(activeToken: string) {
     const meResponse = await fetch(`${apiUrl}/auth/me`, {
       headers: {
@@ -69,19 +85,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const mePayload = (await meResponse.json()) as MeResponse;
-    const usersResponse = await fetch(`${apiUrl}/users`, {
-      headers: {
-        Authorization: `Bearer ${activeToken}`
-      }
-    });
+    setViewer(mePayload.data);
+    await loadUsers(activeToken);
+  }
 
-    if (!usersResponse.ok) {
-      throw new Error("Users could not be loaded");
+  async function refreshUsers() {
+    if (!token) {
+      return;
     }
 
-    const usersPayload = (await usersResponse.json()) as UsersResponse;
-    setViewer(mePayload.data);
-    setUsers(usersPayload.data);
+    await loadUsers(token);
   }
 
   useEffect(() => {
@@ -116,8 +129,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value = useMemo<AuthContextValue>(() => {
     const visibleUsers = viewer
       ? viewer.role === "admin"
-        ? users
-        : users.filter((user) => user.id === viewer.id)
+        ? users.filter((user) => user.isActive)
+        : users.filter((user) => user.id === viewer.id && user.isActive)
       : [];
 
     return {
@@ -149,7 +162,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setViewer(payload.data.user);
         await loadSession(payload.data.token);
       },
-      logout
+      logout,
+      refreshUsers
     };
   }, [isAuthReady, token, users, viewer]);
 

@@ -5,6 +5,7 @@ export type UserSummary = {
   name: string;
   email: string;
   role: UserRole;
+  isActive: boolean;
   avatarUrl: string | null;
 };
 
@@ -14,6 +15,7 @@ export const users: UserSummary[] = [
     name: "Deniz Kara",
     email: "deniz@shipin.local",
     role: "admin",
+    isActive: true,
     avatarUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Deniz%20Kara"
   },
   {
@@ -21,6 +23,7 @@ export const users: UserSummary[] = [
     name: "Ece Yılmaz",
     email: "ece@shipin.local",
     role: "user",
+    isActive: true,
     avatarUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Ece%20Y%C4%B1lmaz"
   },
   {
@@ -28,6 +31,7 @@ export const users: UserSummary[] = [
     name: "Mert Şahin",
     email: "mert@shipin.local",
     role: "user",
+    isActive: true,
     avatarUrl: "https://api.dicebear.com/9.x/initials/svg?seed=Mert%20%C5%9Eahin"
   }
 ];

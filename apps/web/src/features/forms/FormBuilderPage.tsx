@@ -15,20 +15,28 @@ import {
   type SubmissionFormQuestion
 } from "./form-types";
 import {
-  submissionTypeLabels,
-  submissionTypes,
-  type SubmissionType
+  submissionTypeLabels
 } from "../submissions/submission-config";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 const questionTypes: FormQuestionType[] = ["text", "textarea", "range", "media"];
 
+type SeriesOption = {
+  id: string;
+  title: string;
+  legacyType?: string | null;
+};
+
+type SeriesResponse = {
+  data: SeriesOption[];
+};
+
 function createQuestionDraft(): SubmissionFormQuestion {
   return {
     id: "new",
     key: `question_${Date.now().toString(36)}`,
-    label: "Yeni soru",
+    label: "New question",
     description: "",
     type: "text",
     required: false,
@@ -61,9 +69,10 @@ function getDefaultConfig(type: FormQuestionType): FormQuestionConfig {
 export function FormBuilderPage() {
   const { authHeaders, viewer } = useAuth();
   const [forms, setForms] = useState<SubmissionForm[]>([]);
+  const [seriesOptions, setSeriesOptions] = useState<SeriesOption[]>([]);
   const [editingForm, setEditingForm] = useState<SubmissionForm | null>(null);
   const [questionDraft, setQuestionDraft] = useState<SubmissionFormQuestion | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Formlar yükleniyor.");
+  const [statusMessage, setStatusMessage] = useState("Loading forms.");
   const [isSaving, setIsSaving] = useState(false);
 
   async function loadForms() {
@@ -71,23 +80,31 @@ export function FormBuilderPage() {
       return;
     }
 
-    setStatusMessage("Formlar yükleniyor.");
+    setStatusMessage("Loading forms.");
 
     try {
-      const response = await fetch(`${apiUrl}/forms`, {
-        headers: authHeaders()
-      });
+      const [formsResponse, seriesResponse] = await Promise.all([
+        fetch(`${apiUrl}/forms`, {
+          headers: authHeaders()
+        }),
+        fetch(`${apiUrl}/series`, {
+          headers: authHeaders()
+        })
+      ]);
 
-      if (!response.ok) {
-        throw new Error("Formlar alınamadı.");
+      if (!formsResponse.ok || !seriesResponse.ok) {
+        throw new Error("Forms could not be loaded.");
       }
 
-      const payload = (await response.json()) as FormsResponse;
-      setForms(payload.data);
+      const formsPayload = (await formsResponse.json()) as FormsResponse;
+      const seriesPayload = (await seriesResponse.json()) as SeriesResponse;
+      setForms(formsPayload.data);
+      setSeriesOptions(seriesPayload.data);
       setStatusMessage("");
     } catch {
       setForms([]);
-      setStatusMessage("Formlar alınamadı.");
+      setSeriesOptions([]);
+      setStatusMessage("Forms could not be loaded.");
     }
   }
 
@@ -152,20 +169,21 @@ export function FormBuilderPage() {
           title: editingForm.title,
           description: editingForm.description,
           slug: editingForm.slug,
-          seriesType: editingForm.seriesType,
+          seriesId: editingForm.seriesId,
+          seriesType: editingForm.seriesType ?? null,
           isActive: editingForm.isActive
         })
       });
 
       if (!response.ok) {
-        throw new Error("Form kaydedilemedi.");
+        throw new Error("Form could not be saved.");
       }
 
       const payload = (await response.json()) as FormResponse;
       replaceForm(payload.data);
-      toast.success("Form kaydedildi.");
+      toast.success("Form saved.");
     } catch {
-      toast.error("Form kaydedilemedi.");
+      toast.error("Form could not be saved.");
     } finally {
       setIsSaving(false);
     }
@@ -204,15 +222,15 @@ export function FormBuilderPage() {
       );
 
       if (!response.ok) {
-        throw new Error("Soru kaydedilemedi.");
+        throw new Error("Question could not be saved.");
       }
 
       const payload = (await response.json()) as FormResponse;
       replaceForm(payload.data);
       setQuestionDraft(null);
-      toast.success("Soru kaydedildi.");
+      toast.success("Question saved.");
     } catch {
-      toast.error("Soru kaydedilemedi.");
+      toast.error("Question could not be saved.");
     } finally {
       setIsSaving(false);
     }
@@ -232,14 +250,14 @@ export function FormBuilderPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Soru silinemedi.");
+        throw new Error("Question could not be deleted.");
       }
 
       const payload = (await response.json()) as FormResponse;
       replaceForm(payload.data);
-      toast.success("Soru silindi.");
+      toast.success("Question deleted.");
     } catch {
-      toast.error("Soru silinemedi.");
+      toast.error("Question could not be deleted.");
     } finally {
       setIsSaving(false);
     }
@@ -276,13 +294,13 @@ export function FormBuilderPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Sıralama kaydedilemedi.");
+        throw new Error("Order could not be saved.");
       }
 
       const payload = (await response.json()) as FormResponse;
       replaceForm(payload.data);
     } catch {
-      toast.error("Sıralama kaydedilemedi.");
+      toast.error("Order could not be saved.");
     } finally {
       setIsSaving(false);
     }
@@ -302,23 +320,23 @@ export function FormBuilderPage() {
       },
       {
         key: "series",
-        header: "Seri",
+        header: "Series",
         width: "180px",
-        render: (form) => submissionTypeLabels[form.seriesType]
+        render: (form) => form.series?.title ?? (form.seriesType ? submissionTypeLabels[form.seriesType] : "-")
       },
       {
         key: "questions",
-        header: "Sorular",
+        header: "Questions",
         width: "100px",
         render: (form) => form.questions.length
       },
       {
         key: "status",
-        header: "Durum",
+        header: "Status",
         width: "120px",
         render: (form) => (
           <span className={`status-pill ${form.isActive ? "is-approved" : "is-archived"}`}>
-            {form.isActive ? "Aktif" : "Pasif"}
+            {form.isActive ? "Active" : "Inactive"}
           </span>
         )
       },
@@ -328,7 +346,7 @@ export function FormBuilderPage() {
         align: "right",
         width: "52px",
         render: (form) => (
-          <button className="icon-button" type="button" aria-label="Formu düzenle" onClick={() => setEditingForm(form)}>
+          <button className="icon-button" type="button" aria-label="Edit form" onClick={() => setEditingForm(form)}>
             <Pencil size={18} />
           </button>
         )
@@ -344,12 +362,12 @@ export function FormBuilderPage() {
   return (
     <>
       <ListPageTemplate
-        title="Formlar"
+        title="Forms"
         columns={columns}
         rows={forms}
         getRowId={(form) => form.id}
         statusMessage={statusMessage}
-        emptyMessage="Form yok."
+        emptyMessage="No forms available."
       />
 
       {editingForm ? (
@@ -357,10 +375,10 @@ export function FormBuilderPage() {
           <div className={`form-builder ${questionDraft ? "has-editor" : ""}`}>
             <div className="form-builder-main">
               <section className="form-section">
-                <h2>Form bilgileri</h2>
+                <h2>Form details</h2>
                 <div className="form-grid">
                   <label>
-                    Başlık
+                    Title
                     <input value={editingForm.title} onChange={(event) => updateEditingForm({ title: event.target.value })} />
                   </label>
                   <label>
@@ -368,39 +386,48 @@ export function FormBuilderPage() {
                     <input value={editingForm.slug} onChange={(event) => updateEditingForm({ slug: event.target.value })} />
                   </label>
                   <label>
-                    Seri
-                    <select value={editingForm.seriesType} onChange={(event) => updateEditingForm({ seriesType: event.target.value as SubmissionType })}>
-                      {submissionTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {submissionTypeLabels[type]}
+                    Series
+                    <select
+                      value={editingForm.seriesId ?? ""}
+                      onChange={(event) => {
+                        const selectedSeries = seriesOptions.find((series) => series.id === event.target.value);
+                        updateEditingForm({
+                          seriesId: event.target.value,
+                          seriesType: selectedSeries?.legacyType as SubmissionForm["seriesType"]
+                        });
+                      }}
+                    >
+                      {seriesOptions.map((series) => (
+                        <option key={series.id} value={series.id}>
+                          {series.title}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label>
-                    Aktif
+                    Active
                     <select value={editingForm.isActive ? "true" : "false"} onChange={(event) => updateEditingForm({ isActive: event.target.value === "true" })}>
-                      <option value="true">Aktif</option>
-                      <option value="false">Pasif</option>
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
                     </select>
                   </label>
                   <label className="is-wide">
-                    Açıklama
+                    Description
                     <textarea rows={3} value={editingForm.description} onChange={(event) => updateEditingForm({ description: event.target.value })} />
                   </label>
                 </div>
                 <button className="primary-button" type="button" disabled={isSaving} onClick={saveForm}>
                   <Save size={18} />
-                  Formu kaydet
+                  Save form
                 </button>
               </section>
 
               <section className="form-section">
                 <div className="section-heading">
-                  <h2>Sorular</h2>
+                  <h2>Questions</h2>
                   <button className="secondary-button" type="button" onClick={() => setQuestionDraft(createQuestionDraft())}>
                     <Plus size={16} />
-                    Soru ekle
+                    Add question
                   </button>
                 </div>
 
@@ -411,20 +438,20 @@ export function FormBuilderPage() {
                         <strong>{question.label}</strong>
                         <p>
                           {question.key} · {questionTypeLabels[question.type]}
-                          {question.required ? " · Zorunlu" : ""}
+                          {question.required ? " · Required" : ""}
                         </p>
                       </div>
                       <div className="table-actions">
-                        <button className="icon-button" type="button" aria-label="Yukarı taşı" disabled={index === 0 || isSaving} onClick={() => reorderQuestion(question, "up")}>
+                        <button className="icon-button" type="button" aria-label="Move up" disabled={index === 0 || isSaving} onClick={() => reorderQuestion(question, "up")}>
                           <ArrowUp size={16} />
                         </button>
-                        <button className="icon-button" type="button" aria-label="Aşağı taşı" disabled={index === editingForm.questions.length - 1 || isSaving} onClick={() => reorderQuestion(question, "down")}>
+                        <button className="icon-button" type="button" aria-label="Move down" disabled={index === editingForm.questions.length - 1 || isSaving} onClick={() => reorderQuestion(question, "down")}>
                           <ArrowDown size={16} />
                         </button>
-                        <button className="icon-button" type="button" aria-label="Düzenle" onClick={() => setQuestionDraft(question)}>
+                        <button className="icon-button" type="button" aria-label="Edit" onClick={() => setQuestionDraft(question)}>
                           <Pencil size={16} />
                         </button>
-                        <button className="icon-button is-danger" type="button" aria-label="Sil" disabled={isSaving} onClick={() => deleteQuestion(question)}>
+                        <button className="icon-button is-danger" type="button" aria-label="Delete" disabled={isSaving} onClick={() => deleteQuestion(question)}>
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -438,25 +465,25 @@ export function FormBuilderPage() {
               <aside className="question-editor-panel">
                 <div className="question-editor-header">
                   <div>
-                    <h3>{questionDraft.id === "new" ? "Soru ekle" : "Soruyu düzenle"}</h3>
+                    <h3>{questionDraft.id === "new" ? "Add question" : "Edit question"}</h3>
                     <p>{questionTypeLabels[questionDraft.type]}</p>
                   </div>
-                  <button className="icon-button" type="button" aria-label="Editörü kapat" onClick={() => setQuestionDraft(null)}>
+                  <button className="icon-button" type="button" aria-label="Close editor" onClick={() => setQuestionDraft(null)}>
                     <X size={16} />
                   </button>
                 </div>
 
                 <div className="modal-form">
                   <label>
-                    Soru anahtarı
+                    Question key
                     <input value={questionDraft.key} onChange={(event) => updateQuestionDraft({ key: event.target.value })} />
                   </label>
                   <label>
-                    Soru metni
+                    Question label
                     <input value={questionDraft.label} onChange={(event) => updateQuestionDraft({ label: event.target.value })} />
                   </label>
                   <label>
-                    Tip
+                    Type
                     <select value={questionDraft.type} onChange={(event) => updateQuestionDraft({ type: event.target.value as FormQuestionType })}>
                       {questionTypes.map((type) => (
                         <option key={type} value={type}>
@@ -466,10 +493,10 @@ export function FormBuilderPage() {
                     </select>
                   </label>
                   <label>
-                    Zorunlu
+                    Required
                     <select value={questionDraft.required ? "true" : "false"} onChange={(event) => updateQuestionDraft({ required: event.target.value === "true" })}>
-                      <option value="false">Hayır</option>
-                      <option value="true">Evet</option>
+                      <option value="false">No</option>
+                      <option value="true">Yes</option>
                     </select>
                   </label>
                   <label>
@@ -477,7 +504,7 @@ export function FormBuilderPage() {
                     <input value={questionDraft.placeholder ?? ""} onChange={(event) => updateQuestionDraft({ placeholder: event.target.value })} />
                   </label>
                   <label>
-                    Yardım metni
+                    Help text
                     <input value={questionDraft.helpText ?? ""} onChange={(event) => updateQuestionDraft({ helpText: event.target.value })} />
                   </label>
 
@@ -501,11 +528,11 @@ export function FormBuilderPage() {
                   {questionDraft.type === "media" ? (
                     <div className="media-config">
                       <label>
-                        Maksimum dosya
+                        Maximum files
                         <input type="number" value={questionDraft.config?.maxFiles ?? 1} onChange={(event) => updateQuestionConfig({ maxFiles: Number(event.target.value) })} />
                       </label>
                       <label>
-                        İzin verilen medya tipleri
+                        Allowed media types
                         <select
                           className="multi-select-box"
                           multiple
@@ -539,10 +566,10 @@ export function FormBuilderPage() {
 
                   <div className="question-editor-actions">
                     <button className="secondary-button" type="button" onClick={() => setQuestionDraft(null)}>
-                      Vazgeç
+                      Cancel
                     </button>
                     <button className="primary-button" type="button" disabled={isSaving} onClick={saveQuestion}>
-                      Kaydet
+                      Save
                     </button>
                   </div>
                 </div>

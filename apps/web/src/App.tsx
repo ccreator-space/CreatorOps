@@ -17,14 +17,16 @@ import { RevisionsPage } from "./features/revisions/RevisionsPage";
 import { PublicSubmissionPage } from "./features/submissions/PublicSubmissionPage";
 import { SeriesAssignmentsPage } from "./features/submissions/SeriesAssignmentsPage";
 import { SubmissionsPage } from "./features/submissions/SubmissionsPage";
+import { UsersPage } from "./features/users/UsersPage";
 
 const routeViewMap: Record<string, AppView> = {
   "/calendar": "calendar",
   "/contents": "contents",
   "/revisions": "revisions",
   "/submissions": "submissions",
-  "/series-assignments": "series-assignments",
-  "/forms": "forms"
+  "/series": "series",
+  "/forms": "forms",
+  "/users": "users"
 };
 
 function AuthGate() {
@@ -34,7 +36,7 @@ function AuthGate() {
   if (!isAuthReady) {
     return (
       <main className="login-page">
-        <p className="status-message">Oturum kontrol ediliyor.</p>
+        <p className="status-message">Checking session.</p>
       </main>
     );
   }
@@ -62,7 +64,7 @@ function GuestOnlyLogin() {
   if (!isAuthReady) {
     return (
       <main className="login-page">
-        <p className="status-message">Oturum kontrol ediliyor.</p>
+        <p className="status-message">Checking session.</p>
       </main>
     );
   }
@@ -105,8 +107,10 @@ export function App() {
                   <Route path="/revisions" element={<RevisionsPage />} />
                 </Route>
                 <Route element={<RoleGuard role="admin" fallback="/submissions" />}>
-                  <Route path="/series-assignments" element={<SeriesAssignmentsPage />} />
+                  <Route path="/series" element={<SeriesAssignmentsPage />} />
+                  <Route path="/series-assignments" element={<Navigate to="/series" replace />} />
                   <Route path="/forms" element={<FormBuilderPage />} />
+                  <Route path="/users" element={<UsersPage />} />
                 </Route>
               </Route>
             </Route>
