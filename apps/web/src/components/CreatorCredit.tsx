@@ -2,7 +2,7 @@ export function CreatorCredit() {
   return (
     <a
       className="creator-credit"
-      href="https://poyrazavsever.com"
+      href="https://github.com/ccreator-space/CreatorOps"
       rel="noreferrer"
       target="_blank"
     >
