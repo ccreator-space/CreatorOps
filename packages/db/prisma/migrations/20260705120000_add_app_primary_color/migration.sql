@@ -1,0 +1,1 @@
+ALTER TABLE "AppSettings" ADD COLUMN "primaryColor" TEXT NOT NULL DEFAULT '#1f6f5b';

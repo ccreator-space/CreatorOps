@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { defaultPrimaryColor, isValidHexColor } from "../../lib/theme";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const fallbackLogoSrc = "/logos/cpcreator.png";
 
 type AppSettings = {
   logoUrl: string | null;
+  primaryColor: string;
 };
 
 type AppSettingsResponse = {
@@ -31,9 +33,19 @@ function resolveAssetUrl(value: string | null) {
   return value.startsWith("/uploads") ? `${apiUrl}${value}` : value;
 }
 
+function normalizeSettings(settings: Partial<AppSettings>): AppSettings {
+  return {
+    logoUrl: settings.logoUrl ?? null,
+    primaryColor: isValidHexColor(settings.primaryColor ?? "")
+      ? settings.primaryColor!
+      : defaultPrimaryColor
+  };
+}
+
 export function AppSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<AppSettings>({
-    logoUrl: null
+    logoUrl: null,
+    primaryColor: defaultPrimaryColor
   });
 
   const refreshSettings = async () => {
@@ -44,7 +56,7 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     }
 
     const payload = (await response.json()) as AppSettingsResponse;
-    setSettings(payload.data);
+    setSettings(normalizeSettings(payload.data));
   };
 
   useEffect(() => {
@@ -61,12 +73,13 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
         const payload = (await response.json()) as AppSettingsResponse;
 
         if (isCurrent) {
-          setSettings(payload.data);
+          setSettings(normalizeSettings(payload.data));
         }
       } catch {
         if (isCurrent) {
           setSettings({
-            logoUrl: null
+            logoUrl: null,
+            primaryColor: defaultPrimaryColor
           });
         }
       }
@@ -78,6 +91,14 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
       isCurrent = false;
     };
   }, []);
+
+  useEffect(() => {
+    const primaryColor = isValidHexColor(settings.primaryColor)
+      ? settings.primaryColor
+      : defaultPrimaryColor;
+
+    document.documentElement.style.setProperty("--theme-primary", primaryColor);
+  }, [settings.primaryColor]);
 
   const value = useMemo<AppSettingsContextValue>(
     () => ({

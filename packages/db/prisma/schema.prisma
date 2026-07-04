@@ -82,6 +82,7 @@ model AppSettings {
   id              String   @id @default("app-settings")
   logoUrl         String?
   logoStoragePath String?
+  primaryColor    String   @default("#1f6f5b")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

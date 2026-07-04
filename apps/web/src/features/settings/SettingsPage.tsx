@@ -1,6 +1,7 @@
-import { ImageUp, Save, UserRound } from "lucide-react";
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { ImageUp, Palette, RotateCcw, Save, UserRound } from "lucide-react";
+import { useEffect, useMemo, useState, type CSSProperties, type ChangeEvent, type FormEvent } from "react";
 import toast from "react-hot-toast";
+import { defaultPrimaryColor, isValidHexColor, normalizeHexColor } from "../../lib/theme";
 import { useAuth } from "../auth/AuthProvider";
 import { useAppSettings } from "./AppSettingsProvider";
 
@@ -14,12 +15,14 @@ function createObjectUrl(file: File | null) {
 
 export function SettingsPage() {
   const { authHeaders, refreshUsers, viewer } = useAuth();
-  const { logoSrc, refreshSettings } = useAppSettings();
+  const { logoSrc, refreshSettings, settings } = useAppSettings();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [name, setName] = useState(viewer?.name ?? "");
+  const [primaryColor, setPrimaryColor] = useState(settings.primaryColor);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [isSavingLogo, setIsSavingLogo] = useState(false);
 
   const avatarPreview = useMemo(() => createObjectUrl(avatarFile), [avatarFile]);
@@ -28,6 +31,10 @@ export function SettingsPage() {
   useEffect(() => {
     setName(viewer?.name ?? "");
   }, [viewer?.name]);
+
+  useEffect(() => {
+    setPrimaryColor(settings.primaryColor);
+  }, [settings.primaryColor]);
 
   useEffect(() => {
     return () => {
@@ -140,6 +147,48 @@ export function SettingsPage() {
     }
   };
 
+  const saveTheme = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const nextPrimaryColor = normalizeHexColor(primaryColor);
+
+    if (!isValidHexColor(nextPrimaryColor)) {
+      toast.error("Enter a valid hex color.");
+      return;
+    }
+
+    setIsSavingTheme(true);
+
+    try {
+      const response = await fetch(`${apiUrl}/settings/theme`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders()
+        },
+        body: JSON.stringify({
+          primaryColor: nextPrimaryColor
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Theme could not be updated.");
+      }
+
+      await refreshSettings();
+      setPrimaryColor(nextPrimaryColor);
+      toast.success("Theme updated.");
+    } catch {
+      toast.error("Theme could not be updated.");
+    } finally {
+      setIsSavingTheme(false);
+    }
+  };
+
+  const resetTheme = () => {
+    setPrimaryColor(defaultPrimaryColor);
+  };
+
   if (!viewer) {
     return null;
   }
@@ -209,23 +258,69 @@ export function SettingsPage() {
       ) : null}
 
       {activeTab === "site" && viewer.role === "admin" ? (
-        <form className="settings-panel" onSubmit={saveLogo}>
-          <div className="settings-logo-preview">
-            <img alt="Current site logo" src={currentLogoSrc} />
-          </div>
+        <>
+          <form className="settings-panel" onSubmit={saveTheme}>
+            <div className="settings-theme-grid">
+              <div
+                className="settings-theme-preview"
+                style={{ "--preview-color": primaryColor } as CSSProperties}
+              >
+                <span />
+                <button className="primary-button" type="button">
+                  Button
+                </button>
+              </div>
 
-          <label className="settings-file-field">
-            Logo
-            <input accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" type="file" onChange={updateLogo} />
-          </label>
+              <div className="form-grid">
+                <label>
+                  Primary color
+                  <input
+                    type="color"
+                    value={isValidHexColor(primaryColor) ? primaryColor : defaultPrimaryColor}
+                    onChange={(event) => setPrimaryColor(event.target.value)}
+                  />
+                </label>
+                <label>
+                  Hex value
+                  <input
+                    value={primaryColor}
+                    onChange={(event) => setPrimaryColor(event.target.value)}
+                    placeholder={defaultPrimaryColor}
+                  />
+                </label>
+              </div>
+            </div>
 
-          <div className="settings-actions">
-            <button className="primary-button" type="submit" disabled={isSavingLogo}>
-              <ImageUp size={18} />
-              {isSavingLogo ? "Uploading..." : "Save logo"}
-            </button>
-          </div>
-        </form>
+            <div className="settings-actions">
+              <button className="secondary-button" type="button" onClick={resetTheme}>
+                <RotateCcw size={18} />
+                Reset default
+              </button>
+              <button className="primary-button" type="submit" disabled={isSavingTheme}>
+                <Palette size={18} />
+                {isSavingTheme ? "Saving..." : "Save theme"}
+              </button>
+            </div>
+          </form>
+
+          <form className="settings-panel" onSubmit={saveLogo}>
+            <div className="settings-logo-preview">
+              <img alt="Current site logo" src={currentLogoSrc} />
+            </div>
+
+            <label className="settings-file-field">
+              Logo
+              <input accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" type="file" onChange={updateLogo} />
+            </label>
+
+            <div className="settings-actions">
+              <button className="primary-button" type="submit" disabled={isSavingLogo}>
+                <ImageUp size={18} />
+                {isSavingLogo ? "Uploading..." : "Save logo"}
+              </button>
+            </div>
+          </form>
+        </>
       ) : null}
     </section>
   );
