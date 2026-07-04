@@ -223,8 +223,9 @@ export function ContentListPage() {
         {
           key: "content",
           header: "Content",
+          width: "260px",
           render: (post) => (
-            <div className="table-primary">
+            <div className="table-primary is-compact">
               <strong className="table-title-only">{post.title}</strong>
             </div>
           )

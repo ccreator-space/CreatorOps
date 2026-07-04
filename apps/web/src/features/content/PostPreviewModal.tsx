@@ -245,12 +245,6 @@ export function PostPreviewModal({ post, onClose }: PostPreviewModalProps) {
   return (
     <Modal title={modalTitle} size="wide" onClose={onClose}>
       <div className="post-preview-shell">
-        <aside className="post-preview-meta">
-          <span>{post.platform === "instagram" ? "Instagram carousel" : "LinkedIn post"}</span>
-          <h3>{post.title}</h3>
-          <p>{post.attachments.length ? `${post.attachments.length} media item(s)` : "Text only"}</p>
-        </aside>
-
         <div className="post-preview-stage">
           {post.platform === "instagram" ? (
             <InstagramPreview post={post} />
