@@ -12,7 +12,7 @@ import { AvatarStack } from "../../components/AvatarStack";
 import { type UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
 import { ContentIdeaSheet, type EditableContentIdea } from "./ContentIdeaSheet";
-import { ContentSheet } from "./ContentSheet";
+import { ContentSheet, type ContentAttachment, type EditableContentPost } from "./ContentSheet";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -28,14 +28,10 @@ type CalendarAssignment = {
   user: UserSummary;
 };
 
-type CalendarPost = {
-  id: string;
-  assigneeId: string;
-  scheduledDate: string;
-  platform: "linkedin" | "instagram";
-  title: string;
+type CalendarPost = EditableContentPost & {
   status: "draft" | "pending_review" | "approved" | "rejected" | "revision_requested";
   author: UserSummary;
+  attachments: ContentAttachment[];
 };
 
 type AssignmentsResponse = {
@@ -152,6 +148,8 @@ export function CalendarPage() {
   const [posts, setPosts] = useState<CalendarPost[]>([]);
   const [ideas, setIdeas] = useState<EditableContentIdea[]>([]);
   const [activeIdeaId, setActiveIdeaId] = useState<string | null>(null);
+  const [activePostId, setActivePostId] = useState<string | null>(null);
+  const [editingPost, setEditingPost] = useState<CalendarPost | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
   const [ideaSheet, setIdeaSheet] = useState<IdeaSheetState>({
@@ -220,11 +218,21 @@ export function CalendarPage() {
     setSelectedMonth(nextMonth);
     setSelectedDate(`${nextMonth}-01`);
     setActiveIdeaId(null);
+    setActivePostId(null);
+    setEditingPost(null);
     setIsSheetOpen(false);
     setIdeaSheet({
       isOpen: false,
       idea: null
     });
+  };
+
+  const canMutatePost = (post: CalendarPost) => {
+    if (!viewer) {
+      return false;
+    }
+
+    return viewer.role === "admin" || (post.author.id === viewer.id && post.status !== "approved");
   };
 
   const handleIdeaDelete = async (idea: EditableContentIdea) => {
@@ -310,6 +318,88 @@ export function CalendarPage() {
     }
   };
 
+  const handlePostDelete = async (post: CalendarPost) => {
+    if (!canMutatePost(post)) {
+      return;
+    }
+
+    const shouldDelete = window.confirm("Delete this content?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setActivePostId(null);
+    setStatusMessage("Deleting content.");
+
+    try {
+      const response = await fetch(`${apiUrl}/posts/${post.id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error("Content could not be deleted.");
+      }
+
+      setPosts((currentPosts) => currentPosts.filter((item) => item.id !== post.id));
+      toast.success("Content deleted.");
+      setStatusMessage("Content deleted.");
+    } catch {
+      toast.error("Content could not be deleted.");
+      setStatusMessage("Content could not be deleted.");
+    }
+  };
+
+  const handlePostMove = async (postId: string, date: string) => {
+    const post = posts.find((item) => item.id === postId);
+
+    if (!post || post.scheduledDate === date || !canMutatePost(post)) {
+      return;
+    }
+
+    setSelectedDate(date);
+    setActivePostId(null);
+    setStatusMessage("Moving content.");
+
+    try {
+      const body = new FormData();
+      body.set("scheduledDate", date);
+      body.set("assigneeId", post.assigneeId);
+      body.set("platform", post.platform);
+      body.set("title", post.title);
+      body.set("content", post.content);
+      post.attachments.forEach((attachment) => {
+        body.append("keepAttachmentIds", attachment.id);
+      });
+
+      const response = await fetch(`${apiUrl}/posts/${post.id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body
+      });
+
+      if (!response.ok) {
+        throw new Error("Content could not be moved.");
+      }
+
+      const nextMonth = date.slice(0, 7);
+      setPosts((currentPosts) =>
+        currentPosts.map((item) => (item.id === post.id ? { ...item, scheduledDate: date } : item))
+      );
+      setSelectedMonth(nextMonth);
+      toast.success("Content moved.");
+      setStatusMessage("Content moved.");
+
+      if (nextMonth === selectedMonth) {
+        void loadCalendarData();
+      }
+    } catch {
+      toast.error("Content could not be moved.");
+      setStatusMessage("Content could not be moved.");
+    }
+  };
+
   const handleDrop = async (event: DragEvent<HTMLDivElement>, date: string) => {
     event.preventDefault();
 
@@ -321,6 +411,13 @@ export function CalendarPage() {
 
     if (ideaId) {
       await handleIdeaMove(ideaId, date);
+      return;
+    }
+
+    const postId = event.dataTransfer.getData("application/x-creatorops-post-id");
+
+    if (postId) {
+      await handlePostMove(postId, date);
       return;
     }
 
@@ -384,9 +481,29 @@ export function CalendarPage() {
   };
 
   const openNewContentSheet = () => {
+    setEditingPost(null);
+    setActivePostId(null);
+    setActiveIdeaId(null);
     setSheetDefaults({
       date: selectedDate ?? `${selectedMonth}-01`
     });
+    setIdeaSheet({
+      isOpen: false,
+      idea: null
+    });
+    setIsSheetOpen(true);
+  };
+
+  const openExistingPostSheet = (post: CalendarPost) => {
+    if (!canMutatePost(post)) {
+      return;
+    }
+
+    setEditingPost(post);
+    setSelectedDate(post.scheduledDate);
+    setSelectedMonth(post.scheduledDate.slice(0, 7));
+    setActivePostId(null);
+    setActiveIdeaId(null);
     setIdeaSheet({
       isOpen: false,
       idea: null
@@ -402,6 +519,7 @@ export function CalendarPage() {
     setSelectedDate(date);
     setSelectedMonth(date.slice(0, 7));
     setActiveIdeaId(null);
+    setActivePostId(null);
     setIsSheetOpen(false);
     setIdeaSheet({
       isOpen: true,
@@ -414,6 +532,7 @@ export function CalendarPage() {
     setSelectedDate(idea.date);
     setSelectedMonth(idea.date.slice(0, 7));
     setActiveIdeaId(null);
+    setActivePostId(null);
     setIsSheetOpen(false);
     setIdeaSheet({
       isOpen: true,
@@ -426,6 +545,7 @@ export function CalendarPage() {
     setSelectedDate(date);
     setSelectedMonth(date.slice(0, 7));
     setActiveIdeaId(null);
+    setActivePostId(null);
   };
 
   const handleDayKeyDown = (event: KeyboardEvent<HTMLDivElement>, date: string) => {
@@ -450,6 +570,22 @@ export function CalendarPage() {
     event.stopPropagation();
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("application/x-creatorops-content-idea-id", idea.id);
+  };
+
+  const handlePostDragStart = (event: DragEvent<HTMLButtonElement>, post: CalendarPost) => {
+    if (!canMutatePost(post)) {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("application/x-creatorops-post-id", post.id);
+  };
+
+  const closeContentSheet = () => {
+    setIsSheetOpen(false);
+    setEditingPost(null);
   };
 
   if (!viewer) {
@@ -538,6 +674,7 @@ export function CalendarPage() {
                         event.stopPropagation();
 
                         if (viewer.role === "admin") {
+                          setActivePostId(null);
                           setActiveIdeaId((currentIdeaId) =>
                             currentIdeaId === idea.id ? null : idea.id
                           );
@@ -586,14 +723,56 @@ export function CalendarPage() {
             {day.posts.length ? (
               <div className="cell-posts">
                 {day.posts.map((post) => (
-                  <span className={`cell-post is-${post.status}`} key={post.id}>
-                    <img
-                      alt={post.author.name}
-                      src={post.author.avatarUrl ?? ""}
-                      title={post.author.name}
-                    />
-                    {post.platform === "instagram" ? <InstagramLogo /> : <LinkedInLogo />}
-                  </span>
+                  <div className="cell-post-wrap" key={post.id}>
+                    <button
+                      className={`cell-post is-${post.status}`}
+                      draggable={canMutatePost(post)}
+                      type="button"
+                      title={post.title}
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        if (canMutatePost(post)) {
+                          setActiveIdeaId(null);
+                          setActivePostId((currentPostId) =>
+                            currentPostId === post.id ? null : post.id
+                          );
+                        }
+                      }}
+                      onDragStart={(event) => handlePostDragStart(event, post)}
+                    >
+                      <img
+                        alt={post.author.name}
+                        src={post.author.avatarUrl ?? ""}
+                        title={post.author.name}
+                      />
+                      {post.platform === "instagram" ? <InstagramLogo /> : <LinkedInLogo />}
+                    </button>
+
+                    {activePostId === post.id && canMutatePost(post) ? (
+                      <div
+                        className="idea-toolbox"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <button
+                          className="icon-button"
+                          type="button"
+                          onClick={() => openExistingPostSheet(post)}
+                          aria-label="Edit content"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          className="icon-button is-danger"
+                          type="button"
+                          onClick={() => void handlePostDelete(post)}
+                          aria-label="Delete content"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -615,9 +794,10 @@ export function CalendarPage() {
         isOpen={isSheetOpen}
         authHeaders={authHeaders}
         users={visibleUsers}
+        editingPost={editingPost}
         initialDate={sheetDefaults.date}
         initialUserId={sheetDefaults.userId}
-        onClose={() => setIsSheetOpen(false)}
+        onClose={closeContentSheet}
         onSaved={loadCalendarData}
         onStatusChange={setStatusMessage}
       />

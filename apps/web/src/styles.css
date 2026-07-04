@@ -592,7 +592,8 @@ button:disabled {
   width: 18px;
 }
 
-.cell-idea-wrap {
+.cell-idea-wrap,
+.cell-post-wrap {
   position: relative;
 }
 
@@ -618,6 +619,7 @@ button:disabled {
   border-left: 3px solid #dfe4df;
   border-radius: 8px;
   color: #52605a;
+  cursor: pointer;
   display: inline-flex;
   font-size: 12px;
   font-weight: 800;
@@ -625,6 +627,10 @@ button:disabled {
   height: 28px;
   padding: 0 8px 0 4px;
   width: fit-content;
+}
+
+.cell-post:hover {
+  background: #eef2ee;
 }
 
 .cell-post img {
