@@ -85,6 +85,17 @@ button:disabled {
   padding: 24px;
 }
 
+.route-loading-card {
+  background: #ffffff;
+  border: 1px solid #dfe4df;
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgb(23 32 38 / 8%);
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  width: min(320px, 100%);
+}
+
 .auth-layout {
   background: #f7f8f6;
   display: grid;
@@ -369,12 +380,6 @@ button:disabled {
   text-align: center;
 }
 
-.status-message {
-  color: #52605a;
-  font-size: 14px;
-  margin: 0 0 12px;
-}
-
 .filter-control {
   color: #52605a;
   align-items: center;
@@ -541,6 +546,15 @@ button:disabled {
 
 .calendar-cell.is-outside-month .day-number {
   color: #9aa59d;
+}
+
+.calendar-skeleton-cell {
+  cursor: default;
+  gap: 12px;
+}
+
+.calendar-skeleton-cell:hover {
+  background: #ffffff;
 }
 
 .day-number {
@@ -973,6 +987,38 @@ button:disabled {
   color: #69766e;
   height: 96px;
   text-align: center;
+}
+
+.list-skeleton-row td {
+  height: 62px;
+}
+
+.skeleton-line {
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, #eef2ee 0%, #f7f8f6 46%, #eef2ee 100%);
+  background-size: 220% 100%;
+  border-radius: 999px;
+  display: inline-block;
+  height: 14px;
+  max-width: 100%;
+}
+
+.skeleton-line.is-short {
+  width: 34px;
+}
+
+.skeleton-line.is-medium {
+  width: 56%;
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 120% 0;
+  }
+
+  100% {
+    background-position: -120% 0;
+  }
 }
 
 .confirm-copy {
@@ -1750,6 +1796,15 @@ button:disabled {
 .public-submit-form {
   display: grid;
   gap: 16px;
+}
+
+.public-field-skeleton {
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, #eef2ee 0%, #f7f8f6 46%, #eef2ee 100%);
+  background-size: 220% 100%;
+  border-radius: 8px;
+  display: block;
+  height: 42px;
 }
 
 .form-section {

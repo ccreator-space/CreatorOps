@@ -73,7 +73,8 @@ export function ContentListPage() {
     viewer?.role === "admin" ? "pending_review" : "all"
   );
   const [posts, setPosts] = useState<ContentPost[]>([]);
-  const [statusMessage, setStatusMessage] = useState("Loading content.");
+  const [, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [revisionPost, setRevisionPost] = useState<ContentPost | null>(null);
   const [previewPost, setPreviewPost] = useState<ContentPost | null>(null);
@@ -89,7 +90,8 @@ export function ContentListPage() {
       return;
     }
 
-    setStatusMessage("Loading content.");
+    setIsLoading(true);
+    setStatusMessage("");
 
     try {
       const params = new URLSearchParams();
@@ -111,7 +113,10 @@ export function ContentListPage() {
       setStatusMessage("");
     } catch {
       setPosts([]);
-      setStatusMessage("Content could not be loaded.");
+      toast.error("Content could not be loaded.");
+      setStatusMessage("");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -395,7 +400,7 @@ export function ContentListPage() {
         columns={columns}
         rows={posts}
         getRowId={(post) => post.id}
-        statusMessage={statusMessage}
+        isLoading={isLoading}
         emptyMessage="No content matches this filter."
       />
 

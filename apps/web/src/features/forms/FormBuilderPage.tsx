@@ -72,7 +72,7 @@ export function FormBuilderPage() {
   const [seriesOptions, setSeriesOptions] = useState<SeriesOption[]>([]);
   const [editingForm, setEditingForm] = useState<SubmissionForm | null>(null);
   const [questionDraft, setQuestionDraft] = useState<SubmissionFormQuestion | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Loading forms.");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   async function loadForms() {
@@ -80,7 +80,7 @@ export function FormBuilderPage() {
       return;
     }
 
-    setStatusMessage("Loading forms.");
+    setIsLoading(true);
 
     try {
       const [formsResponse, seriesResponse] = await Promise.all([
@@ -100,11 +100,12 @@ export function FormBuilderPage() {
       const seriesPayload = (await seriesResponse.json()) as SeriesResponse;
       setForms(formsPayload.data);
       setSeriesOptions(seriesPayload.data);
-      setStatusMessage("");
     } catch {
       setForms([]);
       setSeriesOptions([]);
-      setStatusMessage("Forms could not be loaded.");
+      toast.error("Forms could not be loaded.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -366,7 +367,7 @@ export function FormBuilderPage() {
         columns={columns}
         rows={forms}
         getRowId={(form) => form.id}
-        statusMessage={statusMessage}
+        isLoading={isLoading}
         emptyMessage="No forms available."
       />
 

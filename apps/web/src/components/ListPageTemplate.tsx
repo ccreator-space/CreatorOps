@@ -14,7 +14,8 @@ type ListPageTemplateProps<TItem> = {
   columns: Array<ListColumn<TItem>>;
   rows: TItem[];
   getRowId: (item: TItem) => string;
-  statusMessage?: string;
+  isLoading?: boolean;
+  skeletonRowCount?: number;
   emptyMessage: string;
 };
 
@@ -24,7 +25,8 @@ export function ListPageTemplate<TItem>({
   columns,
   rows,
   getRowId,
-  statusMessage,
+  isLoading = false,
+  skeletonRowCount = 5,
   emptyMessage
 }: ListPageTemplateProps<TItem>) {
   return (
@@ -33,8 +35,6 @@ export function ListPageTemplate<TItem>({
         <h1>{title}</h1>
         {actions ? <div className="header-actions">{actions}</div> : null}
       </header>
-
-      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
 
       <div className="list-table-wrap">
         <table className="list-table">
@@ -52,7 +52,25 @@ export function ListPageTemplate<TItem>({
             </tr>
           </thead>
           <tbody>
-            {rows.length ? (
+            {isLoading ? (
+              Array.from({ length: skeletonRowCount }, (_item, rowIndex) => (
+                <tr className="list-skeleton-row" key={`skeleton-${rowIndex}`}>
+                  {columns.map((column, columnIndex) => (
+                    <td
+                      className={column.align === "right" ? "is-right" : undefined}
+                      key={column.key}
+                    >
+                      <span
+                        className="skeleton-line"
+                        style={{
+                          width: columnIndex === 0 ? "70%" : column.align === "right" ? "64px" : "52%"
+                        }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : rows.length ? (
               rows.map((row) => (
                 <tr key={getRowId(row)}>
                   {columns.map((column) => (

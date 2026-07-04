@@ -119,7 +119,7 @@ export function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [activeSubmission, setActiveSubmission] = useState<Submission | null>(null);
   const [mediaSubmission, setMediaSubmission] = useState<Submission | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Loading submissions.");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const isAdmin = viewer?.role === "admin";
   const assignableUsers = users.filter((user) => user.role === "user" && user.isActive);
@@ -129,7 +129,7 @@ export function SubmissionsPage() {
       return;
     }
 
-    setStatusMessage("Loading submissions.");
+    setIsLoading(true);
 
     try {
       const response = await fetch(`${apiUrl}/submissions`, {
@@ -142,10 +142,11 @@ export function SubmissionsPage() {
 
       const payload = (await response.json()) as SubmissionsResponse;
       setSubmissions(payload.data);
-      setStatusMessage("");
     } catch {
       setSubmissions([]);
-      setStatusMessage("Submissions could not be loaded.");
+      toast.error("Submissions could not be loaded.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -316,7 +317,7 @@ export function SubmissionsPage() {
         columns={columns}
         rows={submissions}
         getRowId={(submission) => submission.id}
-        statusMessage={statusMessage}
+        isLoading={isLoading}
         emptyMessage="No submissions yet."
       />
 

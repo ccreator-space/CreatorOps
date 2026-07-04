@@ -140,6 +140,25 @@ function InstagramLogo() {
   );
 }
 
+function CalendarSkeleton() {
+  return (
+    <div className="calendar-grid" aria-hidden="true">
+      {weekDays.map((day) => (
+        <div className="weekday" key={day}>
+          {day}
+        </div>
+      ))}
+      {Array.from({ length: 35 }, (_item, index) => (
+        <div className="calendar-cell calendar-skeleton-cell" key={index}>
+          <span className="skeleton-line is-short" />
+          <span className="skeleton-line" />
+          <span className="skeleton-line is-medium" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function CalendarPage() {
   const { authHeaders, viewer, visibleUsers } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState(() => toMonthOnly(new Date()));
@@ -156,7 +175,8 @@ export function CalendarPage() {
     isOpen: false,
     idea: null
   });
-  const [statusMessage, setStatusMessage] = useState("Loading calendar assignments.");
+  const [, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
   const loadCalendarData = useCallback(async () => {
@@ -164,7 +184,8 @@ export function CalendarPage() {
       return;
     }
 
-    setStatusMessage("Loading calendar.");
+    setIsLoading(true);
+    setStatusMessage("");
 
     try {
       const [assignmentsResponse, postsResponse, ideasResponse] = await Promise.all([
@@ -195,7 +216,10 @@ export function CalendarPage() {
       setAssignments([]);
       setPosts([]);
       setIdeas([]);
-      setStatusMessage("Calendar data could not be loaded from the API.");
+      toast.error("Calendar data could not be loaded.");
+      setStatusMessage("");
+    } finally {
+      setIsLoading(false);
     }
   }, [selectedMonth, viewer?.id]);
 
@@ -637,9 +661,7 @@ export function CalendarPage() {
         </div>
       </header>
 
-      {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
-
-      <div className="calendar-grid" role="grid" aria-label="Content calendar">
+      {isLoading ? <CalendarSkeleton /> : <div className="calendar-grid" role="grid" aria-label="Content calendar">
         {weekDays.map((day) => (
           <div className="weekday" key={day}>
             {day}
@@ -788,7 +810,7 @@ export function CalendarPage() {
             </div>
           </div>
         ))}
-      </div>
+      </div>}
 
       <ContentSheet
         isOpen={isSheetOpen}

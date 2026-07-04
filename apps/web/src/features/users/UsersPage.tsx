@@ -78,7 +78,7 @@ export function UsersPage() {
   const { authHeaders, refreshUsers, users, viewer } = useAuth();
   const [draft, setDraft] = useState<UserDraft | null>(null);
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState("");
+  const [, setStatusMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   const openCreateModal = () => {
@@ -282,7 +282,6 @@ export function UsersPage() {
         columns={columns}
         rows={users}
         getRowId={(user) => user.id}
-        statusMessage={statusMessage}
         emptyMessage="No users yet."
       />
 

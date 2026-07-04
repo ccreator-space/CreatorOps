@@ -32,16 +32,23 @@ const routeViewMap: Record<string, AppView> = {
   "/settings": "settings"
 };
 
+function RouteLoadingState() {
+  return (
+    <main className="login-page">
+      <div className="route-loading-card" aria-label="Loading">
+        <span className="skeleton-line" />
+        <span className="skeleton-line is-medium" />
+      </div>
+    </main>
+  );
+}
+
 function AuthGate() {
   const { isAuthReady, needsBootstrap, viewer } = useAuth();
   const location = useLocation();
 
   if (!isAuthReady) {
-    return (
-      <main className="login-page">
-        <p className="status-message">Checking session.</p>
-      </main>
-    );
+    return <RouteLoadingState />;
   }
 
   if (needsBootstrap) {
@@ -69,11 +76,7 @@ function GuestOnlyLogin() {
   const { isAuthReady, needsBootstrap, viewer } = useAuth();
 
   if (!isAuthReady) {
-    return (
-      <main className="login-page">
-        <p className="status-message">Checking session.</p>
-      </main>
-    );
+    return <RouteLoadingState />;
   }
 
   if (needsBootstrap) {
@@ -91,11 +94,7 @@ function SetupGate() {
   const { isAuthReady, needsBootstrap, viewer } = useAuth();
 
   if (!isAuthReady) {
-    return (
-      <main className="login-page">
-        <p className="status-message">Checking workspace.</p>
-      </main>
-    );
+    return <RouteLoadingState />;
   }
 
   if (!needsBootstrap) {

@@ -50,14 +50,16 @@ export function RevisionsPage() {
     content: ""
   });
   const [activePostId, setActivePostId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Loading revisions.");
+  const [, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   async function loadRevisions() {
     if (!viewer) {
       return;
     }
 
-    setStatusMessage("Loading revisions.");
+    setIsLoading(true);
+    setStatusMessage("");
 
     try {
       const response = await fetch(`${apiUrl}/posts?status=revision_requested`, {
@@ -73,7 +75,10 @@ export function RevisionsPage() {
       setStatusMessage("");
     } catch {
       setPosts([]);
-      setStatusMessage("Revisions could not be loaded.");
+      toast.error("Revisions could not be loaded.");
+      setStatusMessage("");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -222,7 +227,7 @@ export function RevisionsPage() {
         columns={columns}
         rows={posts}
         getRowId={(post) => post.id}
-        statusMessage={statusMessage}
+        isLoading={isLoading}
         emptyMessage="No content is waiting for revision."
       />
 

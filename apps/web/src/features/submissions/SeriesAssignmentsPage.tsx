@@ -61,7 +61,8 @@ export function SeriesAssignmentsPage() {
   const [series, setSeries] = useState<Series[]>([]);
   const [draft, setDraft] = useState<SeriesDraft | null>(null);
   const [deleteSeries, setDeleteSeries] = useState<Series | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Loading series.");
+  const [, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const assignableUsers = users.filter((user) => user.role === "user" && user.isActive);
 
@@ -70,7 +71,8 @@ export function SeriesAssignmentsPage() {
       return;
     }
 
-    setStatusMessage("Loading series.");
+    setIsLoading(true);
+    setStatusMessage("");
 
     try {
       const response = await fetch(`${apiUrl}/series`, {
@@ -86,7 +88,10 @@ export function SeriesAssignmentsPage() {
       setStatusMessage("");
     } catch {
       setSeries([]);
-      setStatusMessage("Series could not be loaded.");
+      toast.error("Series could not be loaded.");
+      setStatusMessage("");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -292,7 +297,7 @@ export function SeriesAssignmentsPage() {
         columns={columns}
         rows={series}
         getRowId={(item) => item.id}
-        statusMessage={statusMessage}
+        isLoading={isLoading}
         emptyMessage="No series yet."
       />
 

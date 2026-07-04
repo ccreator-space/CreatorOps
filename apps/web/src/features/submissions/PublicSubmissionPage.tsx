@@ -38,6 +38,29 @@ function getQuestionAccept(question: SubmissionFormQuestion) {
   return question.config?.allowedMimeTypes?.join(",") ?? "image/jpeg,image/png,image/webp,application/pdf";
 }
 
+function PublicFormSkeleton() {
+  return (
+    <div className="public-submit-form" aria-hidden="true">
+      <section className="form-section">
+        <span className="skeleton-line is-medium" />
+        <div className="form-grid">
+          {Array.from({ length: 4 }, (_item, index) => (
+            <span className="public-field-skeleton" key={index} />
+          ))}
+        </div>
+      </section>
+      <section className="form-section">
+        <span className="skeleton-line is-medium" />
+        <div className="form-grid">
+          {Array.from({ length: 6 }, (_item, index) => (
+            <span className="public-field-skeleton" key={index} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function PublicSubmissionPage() {
   const { logoSrc } = useAppSettings();
   const { slug = "" } = useParams();
@@ -46,7 +69,7 @@ export function PublicSubmissionPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [mediaAnswers, setMediaAnswers] = useState<Record<string, PreparedMedia[]>>({});
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState("Loading form.");
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -71,7 +94,7 @@ export function PublicSubmissionPage() {
     let isCurrent = true;
 
     async function loadForm() {
-      setStatusMessage("Loading form.");
+      setIsLoading(true);
 
       try {
         const response = await fetch(`${apiUrl}/public/forms/${slug}`);
@@ -84,12 +107,15 @@ export function PublicSubmissionPage() {
 
         if (isCurrent) {
           setForm(payload.data);
-          setStatusMessage("");
         }
       } catch {
         if (isCurrent) {
           setForm(null);
-          setStatusMessage("Form not found.");
+          toast.error("Form not found.");
+        }
+      } finally {
+        if (isCurrent) {
+          setIsLoading(false);
         }
       }
     }
@@ -384,13 +410,11 @@ export function PublicSubmissionPage() {
           <div>
             <img className="public-submit-logo" src={logoSrc} alt="Site logo" />
             <h1>{form?.title ?? "Submission Form"}</h1>
-            <p>{form?.description ?? statusMessage}</p>
+            {form?.description ? <p>{form.description}</p> : null}
           </div>
         </header>
 
-        {statusMessage ? <p className="status-message">{statusMessage}</p> : null}
-
-        {form ? (
+        {isLoading ? <PublicFormSkeleton /> : form ? (
           <form className="public-submit-form" onSubmit={handleSubmit}>
             <section className="form-section">
               <h2>Contact</h2>
