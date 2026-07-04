@@ -2,13 +2,11 @@ import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CreatorCredit } from "../../components/CreatorCredit";
-import { useAppSettings } from "../settings/AppSettingsProvider";
+import { AuthLayout } from "./AuthLayout";
 import { useAuth } from "./AuthProvider";
 
 export function LoginPage() {
   const { login } = useAuth();
-  const { logoSrc } = useAppSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -42,14 +40,11 @@ export function LoginPage() {
   };
 
   return (
-    <main className="login-page">
+    <AuthLayout>
       <form className="login-panel" onSubmit={handleSubmit}>
-        <div className="brand">
-          <img className="brand-logo" src={logoSrc} alt="Site logo" />
-        </div>
-
         <div>
           <h1>Sign in</h1>
+          <p className="panel-copy">Access your content operations workspace.</p>
         </div>
 
         <label>
@@ -77,7 +72,6 @@ export function LoginPage() {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
-      <CreatorCredit />
-    </main>
+    </AuthLayout>
   );
 }

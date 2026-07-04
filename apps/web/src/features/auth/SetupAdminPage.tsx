@@ -2,13 +2,11 @@ import { UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { CreatorCredit } from "../../components/CreatorCredit";
-import { useAppSettings } from "../settings/AppSettingsProvider";
+import { AuthLayout } from "./AuthLayout";
 import { useAuth } from "./AuthProvider";
 
 export function SetupAdminPage() {
   const { bootstrapAdmin } = useAuth();
-  const { logoSrc } = useAppSettings();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -54,12 +52,8 @@ export function SetupAdminPage() {
   };
 
   return (
-    <main className="login-page">
+    <AuthLayout>
       <form className="login-panel" onSubmit={handleSubmit}>
-        <div className="brand">
-          <img className="brand-logo" src={logoSrc} alt="Site logo" />
-        </div>
-
         <div>
           <h1>Create admin</h1>
           <p className="panel-copy">Set up the first administrator account for this workspace.</p>
@@ -110,7 +104,6 @@ export function SetupAdminPage() {
           {isSubmitting ? "Creating admin..." : "Create admin"}
         </button>
       </form>
-      <CreatorCredit />
-    </main>
+    </AuthLayout>
   );
 }
