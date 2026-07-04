@@ -10,6 +10,7 @@ import {
 import { AppShell, type AppView } from "./components/AppShell";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
 import { LoginPage } from "./features/auth/LoginPage";
+import { SetupAdminPage } from "./features/auth/SetupAdminPage";
 import { CalendarPage } from "./features/calendar/CalendarPage";
 import { ContentListPage } from "./features/content/ContentListPage";
 import { FormBuilderPage } from "./features/forms/FormBuilderPage";
@@ -32,7 +33,7 @@ const routeViewMap: Record<string, AppView> = {
 };
 
 function AuthGate() {
-  const { isAuthReady, viewer } = useAuth();
+  const { isAuthReady, needsBootstrap, viewer } = useAuth();
   const location = useLocation();
 
   if (!isAuthReady) {
@@ -41,6 +42,10 @@ function AuthGate() {
         <p className="status-message">Checking session.</p>
       </main>
     );
+  }
+
+  if (needsBootstrap) {
+    return <Navigate to="/setup" replace />;
   }
 
   if (!viewer) {
@@ -61,7 +66,7 @@ function RoleGuard({ role, fallback }: { role: "admin" | "user"; fallback: strin
 }
 
 function GuestOnlyLogin() {
-  const { isAuthReady, viewer } = useAuth();
+  const { isAuthReady, needsBootstrap, viewer } = useAuth();
 
   if (!isAuthReady) {
     return (
@@ -71,11 +76,33 @@ function GuestOnlyLogin() {
     );
   }
 
+  if (needsBootstrap) {
+    return <Navigate to="/setup" replace />;
+  }
+
   if (viewer) {
     return <Navigate to="/calendar" replace />;
   }
 
   return <LoginPage />;
+}
+
+function SetupGate() {
+  const { isAuthReady, needsBootstrap, viewer } = useAuth();
+
+  if (!isAuthReady) {
+    return (
+      <main className="login-page">
+        <p className="status-message">Checking workspace.</p>
+      </main>
+    );
+  }
+
+  if (!needsBootstrap) {
+    return <Navigate to={viewer ? "/calendar" : "/login"} replace />;
+  }
+
+  return <SetupAdminPage />;
 }
 
 function PanelLayout() {
@@ -99,6 +126,7 @@ export function App() {
             <Route path="/submit/:slug" element={<PublicSubmissionPage />} />
 
             <Route path="/login" element={<GuestOnlyLogin />} />
+            <Route path="/setup" element={<SetupGate />} />
 
             <Route element={<AuthGate />}>
               <Route element={<PanelLayout />}>

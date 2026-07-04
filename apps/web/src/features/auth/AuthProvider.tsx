@@ -19,14 +19,22 @@ type LoginCredentials = {
   password: string;
 };
 
+type BootstrapAdminPayload = {
+  name: string;
+  email: string;
+  password: string;
+};
+
 type AuthContextValue = {
   viewer: UserSummary | null;
   users: UserSummary[];
   visibleUsers: UserSummary[];
   token: string | null;
   isAuthReady: boolean;
+  needsBootstrap: boolean | null;
   authHeaders: () => Record<string, string>;
   login: (credentials: LoginCredentials) => Promise<void>;
+  bootstrapAdmin: (payload: BootstrapAdminPayload) => Promise<void>;
   logout: () => void;
   refreshUsers: () => Promise<void>;
 };
@@ -46,6 +54,12 @@ type UsersResponse = {
   data: UserSummary[];
 };
 
+type BootstrapStatusResponse = {
+  data: {
+    needsBootstrap: boolean;
+  };
+};
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 type AuthProviderProps = {
@@ -57,6 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [viewer, setViewer] = useState<UserSummary | null>(null);
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [needsBootstrap, setNeedsBootstrap] = useState<boolean | null>(null);
 
   const authHeaders = (): Record<string, string> => {
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -68,6 +83,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setViewer(null);
     setUsers([]);
   };
+
+  async function loadBootstrapStatus() {
+    const response = await fetch(`${apiUrl}/auth/bootstrap-status`);
+
+    if (!response.ok) {
+      throw new Error("Bootstrap status could not be loaded");
+    }
+
+    const payload = (await response.json()) as BootstrapStatusResponse;
+    setNeedsBootstrap(payload.data.needsBootstrap);
+
+    return payload.data.needsBootstrap;
+  }
 
   async function loadUsers(activeToken: string) {
     const usersResponse = await fetch(`${apiUrl}/users`, {
@@ -116,16 +144,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
     let isCurrent = true;
 
     async function restoreSession() {
-      if (!token) {
-        setIsAuthReady(true);
-        return;
-      }
-
       try {
+        setIsAuthReady(false);
+        const shouldBootstrap = await loadBootstrapStatus();
+
+        if (!isCurrent) {
+          return;
+        }
+
+        if (shouldBootstrap) {
+          localStorage.removeItem("shipin.token");
+          setToken(null);
+          setViewer(null);
+          setUsers([]);
+          return;
+        }
+
+        if (!token) {
+          return;
+        }
+
         await loadSession(token);
       } catch {
         if (isCurrent) {
-          logout();
+          setNeedsBootstrap(false);
+
+          if (token) {
+            logout();
+          }
         }
       } finally {
         if (isCurrent) {
@@ -154,6 +200,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       visibleUsers,
       token,
       isAuthReady,
+      needsBootstrap,
       authHeaders,
       login: async ({ email, password }) => {
         const response = await fetch(`${apiUrl}/auth/login`, {
@@ -173,6 +220,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         const payload = (await response.json()) as LoginResponse;
         localStorage.setItem("shipin.token", payload.data.token);
+        setNeedsBootstrap(false);
+        setToken(payload.data.token);
+        setViewer(resolveAvatarUrl(payload.data.user));
+        await loadSession(payload.data.token);
+      },
+      bootstrapAdmin: async ({ name, email, password }) => {
+        const response = await fetch(`${apiUrl}/auth/bootstrap-admin`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Admin account could not be created");
+        }
+
+        const payload = (await response.json()) as LoginResponse;
+        localStorage.setItem("shipin.token", payload.data.token);
+        setNeedsBootstrap(false);
         setToken(payload.data.token);
         setViewer(resolveAvatarUrl(payload.data.user));
         await loadSession(payload.data.token);
@@ -180,7 +252,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       logout,
       refreshUsers
     };
-  }, [isAuthReady, token, users, viewer]);
+  }, [isAuthReady, needsBootstrap, token, users, viewer]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

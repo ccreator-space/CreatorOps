@@ -1,41 +1,53 @@
-import { LogIn } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CreatorCredit } from "../../components/CreatorCredit";
 import { useAppSettings } from "../settings/AppSettingsProvider";
 import { useAuth } from "./AuthProvider";
 
-export function LoginPage() {
-  const { login } = useAuth();
+export function SetupAdminPage() {
+  const { bootstrapAdmin } = useAuth();
   const { logoSrc } = useAppSettings();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!email.trim() || !password) {
-      toast.error("Email and password are required.");
+    if (!name.trim() || !email.trim() || !password) {
+      toast.error("Name, email, and password are required.");
+      return;
+    }
+
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await login({
+      await bootstrapAdmin({
+        name,
         email,
         password
       });
-      toast.success("Signed in.");
-      navigate(typeof location.state?.from === "string" ? location.state.from : "/calendar", {
+      toast.success("Admin account created.");
+      navigate("/calendar", {
         replace: true
       });
     } catch {
-      toast.error("Incorrect email or password.");
+      toast.error("Admin account could not be created.");
     } finally {
       setIsSubmitting(false);
     }
@@ -49,8 +61,19 @@ export function LoginPage() {
         </div>
 
         <div>
-          <h1>Sign in</h1>
+          <h1>Create admin</h1>
+          <p className="panel-copy">Set up the first administrator account for this workspace.</p>
         </div>
+
+        <label>
+          Name
+          <input
+            autoComplete="name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            type="text"
+          />
+        </label>
 
         <label>
           Email
@@ -65,16 +88,26 @@ export function LoginPage() {
         <label>
           Password
           <input
-            autoComplete="current-password"
+            autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             type="password"
           />
         </label>
 
+        <label>
+          Confirm password
+          <input
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            type="password"
+          />
+        </label>
+
         <button className="primary-button is-full" type="submit" disabled={isSubmitting}>
-          <LogIn size={18} />
-          {isSubmitting ? "Signing in..." : "Sign in"}
+          <UserPlus size={18} />
+          {isSubmitting ? "Creating admin..." : "Create admin"}
         </button>
       </form>
       <CreatorCredit />
