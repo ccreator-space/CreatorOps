@@ -171,14 +171,12 @@ DATABASE_URL
 AUTH_SECRET
 WEB_ORIGIN
 VITE_API_URL
-WEB_PORT
 ```
 
 Recommended defaults:
 
 ```txt
 VITE_API_URL=/api
-WEB_PORT=3000
 ```
 
 Set `WEB_ORIGIN` to the exact public URL of the web app, for example:
@@ -206,6 +204,8 @@ docker-compose.prod.yml
 Add the variables from `.env.production.example` in Dokploy before deploying.
 
 Point your domain to the `web` service. The API should not need its own public domain when `VITE_API_URL=/api`.
+
+The production compose file does not publish a fixed host port for the web service. In Dokploy, route the domain to the `web` service on container port `80`. This avoids host port conflicts such as `Bind for 0.0.0.0:3000 failed`.
 
 ### Production Checklist
 
