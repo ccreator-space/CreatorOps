@@ -105,6 +105,7 @@ pnpm typecheck    # Run TypeScript checks
 pnpm build        # Build all packages/apps
 pnpm test         # Run tests where available
 pnpm db:migrate   # Run Prisma migrations
+pnpm db:deploy    # Apply Prisma migrations in production
 pnpm db:generate  # Generate Prisma Client
 pnpm db:seed      # Seed local database
 pnpm db:studio    # Open Prisma Studio
@@ -140,14 +141,76 @@ Admins can create and manage series, then edit the related public form questions
 
 ## Deployment Notes
 
-For production, make sure to configure:
+CreatorOps ships with Docker files for production deployments:
 
-- PostgreSQL database
-- persistent upload storage
-- strong `AUTH_SECRET`
-- correct `WEB_ORIGIN`
-- correct `VITE_API_URL`
-- backups for the database and uploads directory
+```txt
+Dockerfile.api
+Dockerfile.web
+docker-compose.prod.yml
+deploy/nginx/default.conf
+.env.production.example
+```
+
+The production compose setup runs:
+
+- `postgres`: PostgreSQL database with a persistent Docker volume
+- `api`: Express API, Prisma migrations, and local upload storage
+- `web`: nginx serving the Vite build with React Router fallback
+
+The web container proxies `/api/*` and `/uploads/*` to the API container, so a single public domain can serve the app.
+
+### Required Production Environment
+
+Copy `.env.production.example` and set strong values:
+
+```txt
+POSTGRES_DB
+POSTGRES_USER
+POSTGRES_PASSWORD
+AUTH_SECRET
+WEB_ORIGIN
+VITE_API_URL
+WEB_PORT
+```
+
+Recommended defaults:
+
+```txt
+VITE_API_URL=/api
+WEB_PORT=3000
+```
+
+Set `WEB_ORIGIN` to the exact public URL of the web app, for example:
+
+```txt
+WEB_ORIGIN=https://creatorops.example.com
+```
+
+### Dokploy
+
+Use the Docker Compose deployment flow and select:
+
+```txt
+docker-compose.prod.yml
+```
+
+Add the variables from `.env.production.example` in Dokploy before deploying.
+
+Point your domain to the `web` service. The API should not need its own public domain when `VITE_API_URL=/api`.
+
+### Production Checklist
+
+- Use a long random `AUTH_SECRET`.
+- Use a strong `POSTGRES_PASSWORD`.
+- Keep `WEB_ORIGIN` equal to your real HTTPS web domain.
+- Keep `VITE_API_URL=/api` unless you intentionally expose the API on a separate domain.
+- Back up both `creatorops_postgres_data` and `creatorops_uploads`.
+- Run `pnpm db:seed` only for local/demo data, not as a default production step.
+- Create a real admin user after deployment and rotate any temporary credentials.
+
+### First Admin User
+
+The included seed file is intended for local demo data. For production, create your first admin user intentionally instead of running the demo seed by default. After the first admin exists, additional users can be created from the admin panel.
 
 Uploads are currently stored on the local filesystem. If you deploy to a platform with ephemeral storage, replace the upload service with object storage such as S3, R2, or MinIO.
 

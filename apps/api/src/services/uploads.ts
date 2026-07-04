@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDirectory = path.dirname(currentFile);
-export const uploadsDirectory = path.resolve(currentDirectory, "../../uploads");
+export const uploadsDirectory = process.env.UPLOADS_DIR
+  ? path.resolve(process.env.UPLOADS_DIR)
+  : path.resolve(currentDirectory, "../../uploads");
 
 function sanitizeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9._-]/g, "-");

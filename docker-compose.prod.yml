@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-creatorops}
+      POSTGRES_USER: ${POSTGRES_USER:-creatorops}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Dokploy environment variables}
+    volumes:
+      - creatorops_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      API_PORT: 4000
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET in Dokploy environment variables}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-creatorops}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-creatorops}?schema=public
+      UPLOADS_DIR: /app/uploads
+      WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in Dokploy environment variables}
+    volumes:
+      - creatorops_uploads:/app/uploads
+    command: sh -c "pnpm db:deploy && node apps/api/dist/index.js"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:80"
+
+volumes:
+  creatorops_postgres_data:
+  creatorops_uploads:
