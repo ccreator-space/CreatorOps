@@ -4,7 +4,7 @@ FROM node:20-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
-RUN corepack enable && apk add --no-cache openssl
+RUN corepack enable && corepack prepare pnpm@10.0.0 --activate && apk add --no-cache openssl
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./

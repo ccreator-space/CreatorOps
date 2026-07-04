@@ -3,7 +3,6 @@ set -eu
 
 echo "Starting CreatorOps API container"
 echo "Node: $(node --version)"
-echo "pnpm: $(pnpm --version)"
 
 if [ -z "${DATABASE_URL:-}" ]; then
   echo "DATABASE_URL is required"
@@ -22,7 +21,7 @@ fi
 
 echo "Running Prisma migrations"
 cd /app/packages/db
-pnpm exec prisma migrate deploy
+./node_modules/.bin/prisma migrate deploy
 
 echo "Starting Express server"
 cd /app
