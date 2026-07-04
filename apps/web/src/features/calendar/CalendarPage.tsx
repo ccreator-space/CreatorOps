@@ -1,4 +1,4 @@
-import { Lightbulb, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lightbulb, Pencil, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   useCallback,
@@ -16,6 +16,11 @@ import { ContentSheet } from "./ContentSheet";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+  year: "numeric"
+});
 
 type CalendarAssignment = {
   id: string;
@@ -60,6 +65,53 @@ type IdeaSheetState = {
   initialDate?: string;
 };
 
+function toDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function toMonthOnly(value: Date) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getMonthParts(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+
+  return {
+    year,
+    monthIndex: monthNumber - 1
+  };
+}
+
+function addMonths(month: string, offset: number) {
+  const { year, monthIndex } = getMonthParts(month);
+
+  return toDateOnly(new Date(Date.UTC(year, monthIndex + offset, 1))).slice(0, 7);
+}
+
+function getMonthLabel(month: string) {
+  const { year, monthIndex } = getMonthParts(month);
+
+  return monthFormatter.format(new Date(Date.UTC(year, monthIndex, 1)));
+}
+
+function getCalendarDays(month: string) {
+  const { year, monthIndex } = getMonthParts(month);
+  const monthStart = new Date(Date.UTC(year, monthIndex, 1));
+  const firstWeekdayIndex = (monthStart.getUTCDay() + 6) % 7;
+  const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
+  const visibleDayCount = Math.ceil((firstWeekdayIndex + daysInMonth) / 7) * 7;
+
+  return Array.from({ length: visibleDayCount }, (_, index) => {
+    const date = new Date(Date.UTC(year, monthIndex, index - firstWeekdayIndex + 1));
+
+    return {
+      date: toDateOnly(date),
+      day: date.getUTCDate(),
+      isOutsideMonth: date.getUTCMonth() !== monthIndex
+    };
+  });
+}
+
 function LinkedInLogo() {
   return (
     <svg className="platform-logo" viewBox="0 0 24 24" aria-label="LinkedIn" role="img">
@@ -94,10 +146,12 @@ function InstagramLogo() {
 
 export function CalendarPage() {
   const { authHeaders, viewer, visibleUsers } = useAuth();
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => toMonthOnly(new Date()));
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => toDateOnly(new Date()));
   const [assignments, setAssignments] = useState<CalendarAssignment[]>([]);
   const [posts, setPosts] = useState<CalendarPost[]>([]);
   const [ideas, setIdeas] = useState<EditableContentIdea[]>([]);
+  const [activeIdeaId, setActiveIdeaId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
   const [ideaSheet, setIdeaSheet] = useState<IdeaSheetState>({
@@ -116,13 +170,13 @@ export function CalendarPage() {
 
     try {
       const [assignmentsResponse, postsResponse, ideasResponse] = await Promise.all([
-        fetch(`${apiUrl}/assignments?month=2026-07`, {
+        fetch(`${apiUrl}/assignments?month=${selectedMonth}`, {
           headers: authHeaders()
         }),
-        fetch(`${apiUrl}/posts?month=2026-07`, {
+        fetch(`${apiUrl}/posts?month=${selectedMonth}`, {
           headers: authHeaders()
         }),
-        fetch(`${apiUrl}/content-ideas?month=2026-07`, {
+        fetch(`${apiUrl}/content-ideas?month=${selectedMonth}`, {
           headers: authHeaders()
         })
       ]);
@@ -145,31 +199,128 @@ export function CalendarPage() {
       setIdeas([]);
       setStatusMessage("Calendar data could not be loaded from the API.");
     }
-  }, [viewer?.id]);
+  }, [selectedMonth, viewer?.id]);
 
   useEffect(() => {
     void loadCalendarData();
   }, [loadCalendarData]);
 
   const days = useMemo(() => {
-    return Array.from({ length: 35 }, (_, index) => {
-      const day = index + 1;
-      const date = `2026-07-${String(day).padStart(2, "0")}`;
+    return getCalendarDays(selectedMonth).map((calendarDay) => ({
+      ...calendarDay,
+      assignments: assignments.filter((item) => item.date === calendarDay.date),
+      posts: posts.filter((item) => item.scheduledDate === calendarDay.date),
+      ideas: ideas.filter((item) => item.date === calendarDay.date)
+    }));
+  }, [assignments, ideas, posts, selectedMonth]);
 
-      return {
-        day,
-        date,
-        assignments: assignments.filter((item) => item.date === date),
-        posts: posts.filter((item) => item.scheduledDate === date),
-        ideas: ideas.filter((item) => item.date === date)
-      };
+  const handleMonthChange = (offset: number) => {
+    const nextMonth = addMonths(selectedMonth, offset);
+
+    setSelectedMonth(nextMonth);
+    setSelectedDate(`${nextMonth}-01`);
+    setActiveIdeaId(null);
+    setIsSheetOpen(false);
+    setIdeaSheet({
+      isOpen: false,
+      idea: null
     });
-  }, [assignments, ideas, posts]);
+  };
+
+  const handleIdeaDelete = async (idea: EditableContentIdea) => {
+    if (!viewer || viewer.role !== "admin") {
+      return;
+    }
+
+    const shouldDelete = window.confirm("Delete this content idea?");
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setActiveIdeaId(null);
+    setStatusMessage("Deleting content idea.");
+
+    try {
+      const response = await fetch(`${apiUrl}/content-ideas/${idea.id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+
+      if (!response.ok) {
+        throw new Error("Content idea could not be deleted.");
+      }
+
+      setIdeas((currentIdeas) => currentIdeas.filter((item) => item.id !== idea.id));
+      toast.success("Content idea deleted.");
+      setStatusMessage("Content idea deleted.");
+    } catch {
+      toast.error("Content idea could not be deleted.");
+      setStatusMessage("Content idea could not be deleted.");
+    }
+  };
+
+  const handleIdeaMove = async (ideaId: string, date: string) => {
+    if (!viewer || viewer.role !== "admin") {
+      return;
+    }
+
+    const idea = ideas.find((item) => item.id === ideaId);
+
+    if (!idea || idea.date === date) {
+      return;
+    }
+
+    setSelectedDate(date);
+    setActiveIdeaId(null);
+    setStatusMessage("Moving content idea.");
+
+    try {
+      const response = await fetch(`${apiUrl}/content-ideas/${idea.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeaders()
+        },
+        body: JSON.stringify({
+          date,
+          title: idea.title,
+          description: idea.description ?? ""
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Content idea could not be moved.");
+      }
+
+      const nextMonth = date.slice(0, 7);
+      setIdeas((currentIdeas) =>
+        currentIdeas.map((item) => (item.id === idea.id ? { ...item, date } : item))
+      );
+      setSelectedMonth(nextMonth);
+      toast.success("Content idea moved.");
+      setStatusMessage("Content idea moved.");
+
+      if (nextMonth === selectedMonth) {
+        void loadCalendarData();
+      }
+    } catch {
+      toast.error("Content idea could not be moved.");
+      setStatusMessage("Content idea could not be moved.");
+    }
+  };
 
   const handleDrop = async (event: DragEvent<HTMLDivElement>, date: string) => {
     event.preventDefault();
 
     if (!viewer) {
+      return;
+    }
+
+    const ideaId = event.dataTransfer.getData("application/x-creatorops-content-idea-id");
+
+    if (ideaId) {
+      await handleIdeaMove(ideaId, date);
       return;
     }
 
@@ -182,6 +333,7 @@ export function CalendarPage() {
     }
 
     setSelectedDate(date);
+    setSelectedMonth(date.slice(0, 7));
     setIsSavingAssignment(true);
     setStatusMessage("Saving assignment.");
 
@@ -233,7 +385,7 @@ export function CalendarPage() {
 
   const openNewContentSheet = () => {
     setSheetDefaults({
-      date: selectedDate ?? undefined
+      date: selectedDate ?? `${selectedMonth}-01`
     });
     setIdeaSheet({
       isOpen: false,
@@ -242,12 +394,14 @@ export function CalendarPage() {
     setIsSheetOpen(true);
   };
 
-  const openNewIdeaSheet = (date = selectedDate ?? new Date().toISOString().slice(0, 10)) => {
+  const openNewIdeaSheet = (date = selectedDate ?? `${selectedMonth}-01`) => {
     if (!viewer || viewer.role !== "admin") {
       return;
     }
 
     setSelectedDate(date);
+    setSelectedMonth(date.slice(0, 7));
+    setActiveIdeaId(null);
     setIsSheetOpen(false);
     setIdeaSheet({
       isOpen: true,
@@ -258,6 +412,8 @@ export function CalendarPage() {
 
   const openExistingIdeaSheet = (idea: EditableContentIdea) => {
     setSelectedDate(idea.date);
+    setSelectedMonth(idea.date.slice(0, 7));
+    setActiveIdeaId(null);
     setIsSheetOpen(false);
     setIdeaSheet({
       isOpen: true,
@@ -268,6 +424,8 @@ export function CalendarPage() {
 
   const handleDayClick = (date: string) => {
     setSelectedDate(date);
+    setSelectedMonth(date.slice(0, 7));
+    setActiveIdeaId(null);
 
     if (viewer?.role === "admin") {
       openNewIdeaSheet(date);
@@ -287,6 +445,17 @@ export function CalendarPage() {
     handleDayClick(date);
   };
 
+  const handleIdeaDragStart = (event: DragEvent<HTMLButtonElement>, idea: EditableContentIdea) => {
+    if (!viewer || viewer.role !== "admin") {
+      event.preventDefault();
+      return;
+    }
+
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("application/x-creatorops-content-idea-id", idea.id);
+  };
+
   if (!viewer) {
     return null;
   }
@@ -294,7 +463,28 @@ export function CalendarPage() {
   return (
     <section className="calendar-page">
       <header className="page-header">
-        <h1>Calendar</h1>
+        <div className="calendar-heading">
+          <h1>Calendar</h1>
+          <div className="calendar-month-control" aria-label="Calendar month">
+            <button
+              className="icon-button"
+              type="button"
+              onClick={() => handleMonthChange(-1)}
+              aria-label="Previous month"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <span>{getMonthLabel(selectedMonth)}</span>
+            <button
+              className="icon-button"
+              type="button"
+              onClick={() => handleMonthChange(1)}
+              aria-label="Next month"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
 
         <div className="header-actions">
           <AvatarStack users={visibleUsers} />
@@ -326,7 +516,9 @@ export function CalendarPage() {
 
         {days.map((day) => (
           <div
-            className={`calendar-cell ${selectedDate === day.date ? "is-selected" : ""}`}
+            className={`calendar-cell ${selectedDate === day.date ? "is-selected" : ""} ${
+              day.isOutsideMonth ? "is-outside-month" : ""
+            }`}
             key={day.date}
             role="gridcell"
             tabIndex={0}
@@ -340,18 +532,58 @@ export function CalendarPage() {
             {day.ideas.length ? (
               <div className="cell-ideas">
                 {day.ideas.map((idea) => (
-                  <button
-                    className="cell-idea"
-                    key={idea.id}
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openExistingIdeaSheet(idea);
-                    }}
-                  >
-                    <Lightbulb size={13} />
-                    <span>{idea.title}</span>
-                  </button>
+                  <div className="cell-idea-wrap" key={idea.id}>
+                    <button
+                      className="cell-idea"
+                      draggable={viewer.role === "admin"}
+                      type="button"
+                      title={idea.title}
+                      onClick={(event) => {
+                        event.stopPropagation();
+
+                        if (viewer.role === "admin") {
+                          setActiveIdeaId((currentIdeaId) =>
+                            currentIdeaId === idea.id ? null : idea.id
+                          );
+                          return;
+                        }
+
+                        openExistingIdeaSheet(idea);
+                      }}
+                      onDragStart={(event) => handleIdeaDragStart(event, idea)}
+                    >
+                      <Lightbulb size={13} />
+                      <img
+                        alt={idea.createdBy.name}
+                        src={idea.createdBy.avatarUrl ?? ""}
+                        title={idea.createdBy.name}
+                      />
+                    </button>
+
+                    {activeIdeaId === idea.id && viewer.role === "admin" ? (
+                      <div
+                        className="idea-toolbox"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <button
+                          className="icon-button"
+                          type="button"
+                          onClick={() => openExistingIdeaSheet(idea)}
+                          aria-label="Edit content idea"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          className="icon-button is-danger"
+                          type="button"
+                          onClick={() => void handleIdeaDelete(idea)}
+                          aria-label="Delete content idea"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ))}
               </div>
             ) : null}
