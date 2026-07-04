@@ -34,8 +34,9 @@ COPY --from=build /app/packages/db/package.json ./packages/db/package.json
 COPY --from=build /app/packages/db/node_modules ./packages/db/node_modules
 COPY --from=build /app/packages/db/dist ./packages/db/dist
 COPY --from=build /app/packages/db/prisma ./packages/db/prisma
+COPY deploy/api/start.sh ./deploy/api/start.sh
 
-RUN mkdir -p /app/uploads
+RUN mkdir -p /app/uploads && chmod +x /app/deploy/api/start.sh
 
 EXPOSE 4000
-CMD ["node", "apps/api/dist/index.js"]
+CMD ["/app/deploy/api/start.sh"]

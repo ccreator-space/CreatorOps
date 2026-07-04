@@ -30,7 +30,6 @@ services:
       WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in Dokploy environment variables}
     volumes:
       - creatorops_uploads:/app/uploads
-    command: sh -c "pnpm db:deploy && node apps/api/dist/index.js"
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4000/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\""]
       start_period: 60s
