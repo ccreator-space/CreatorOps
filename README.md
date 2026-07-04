@@ -167,6 +167,7 @@ Copy `.env.production.example` and set strong values:
 POSTGRES_DB
 POSTGRES_USER
 POSTGRES_PASSWORD
+DATABASE_URL
 AUTH_SECRET
 WEB_ORIGIN
 VITE_API_URL
@@ -185,6 +186,14 @@ Set `WEB_ORIGIN` to the exact public URL of the web app, for example:
 ```txt
 WEB_ORIGIN=https://creatorops.example.com
 ```
+
+`DATABASE_URL` must point to the compose PostgreSQL service:
+
+```txt
+DATABASE_URL=postgresql://creatorops:YOUR_PASSWORD@postgres:5432/creatorops?schema=public
+```
+
+If your database password contains URL special characters such as `@`, `:`, `/`, `?`, `#`, `%`, or `&`, URL-encode the password inside `DATABASE_URL`.
 
 ### Dokploy
 
