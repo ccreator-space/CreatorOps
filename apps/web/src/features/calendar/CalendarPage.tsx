@@ -426,10 +426,6 @@ export function CalendarPage() {
     setSelectedDate(date);
     setSelectedMonth(date.slice(0, 7));
     setActiveIdeaId(null);
-
-    if (viewer?.role === "admin") {
-      openNewIdeaSheet(date);
-    }
   };
 
   const handleDayKeyDown = (event: KeyboardEvent<HTMLDivElement>, date: string) => {

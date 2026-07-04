@@ -1,15 +1,16 @@
-import { Check, MessageSquareText, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, Eye, MessageSquareText, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { ListPageTemplate, type ListColumn } from "../../components/ListPageTemplate";
-import { MediaCarouselModal } from "../../components/MediaCarouselModal";
 import { Modal } from "../../components/Modal";
+import type { UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
 import {
   ContentSheet,
   type ContentAttachment,
   type EditableContentPost
 } from "../calendar/ContentSheet";
+import { PostPreviewModal } from "./PostPreviewModal";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -23,11 +24,9 @@ type PostStatus =
 type StatusFilter = PostStatus | "all";
 type ReviewAction = "approve" | "reject" | "request_revision";
 
-type ContentPost = EditableContentPost & {
+export type ContentPost = EditableContentPost & {
   status: PostStatus;
-  author: {
-    name: string;
-  };
+  author: UserSummary;
   latestReview?: {
     note?: string;
   };
@@ -60,6 +59,14 @@ function canUserEdit(post: ContentPost) {
   return post.status !== "approved";
 }
 
+function resolveAvatarUrl(user: UserSummary) {
+  if (!user.avatarUrl || user.avatarUrl.startsWith("http://") || user.avatarUrl.startsWith("https://")) {
+    return user.avatarUrl ?? "";
+  }
+
+  return user.avatarUrl.startsWith("/uploads") ? `${apiUrl}${user.avatarUrl}` : user.avatarUrl;
+}
+
 export function ContentListPage() {
   const { authHeaders, viewer, visibleUsers } = useAuth();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(
@@ -69,7 +76,7 @@ export function ContentListPage() {
   const [statusMessage, setStatusMessage] = useState("Loading content.");
   const [activePostId, setActivePostId] = useState<string | null>(null);
   const [revisionPost, setRevisionPost] = useState<ContentPost | null>(null);
-  const [mediaPost, setMediaPost] = useState<ContentPost | null>(null);
+  const [previewPost, setPreviewPost] = useState<ContentPost | null>(null);
   const [editingPost, setEditingPost] = useState<ContentPost | null>(null);
   const [deletePost, setDeletePost] = useState<ContentPost | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -218,8 +225,7 @@ export function ContentListPage() {
           header: "Content",
           render: (post) => (
             <div className="table-primary">
-              <strong>{post.title}</strong>
-              <span>{post.content}</span>
+              <strong className="table-title-only">{post.title}</strong>
             </div>
           )
         },
@@ -228,8 +234,15 @@ export function ContentListPage() {
               {
                 key: "author",
                 header: "Submitted by",
-                width: "170px",
-                render: (post: ContentPost) => post.author.name
+                width: "116px",
+                render: (post: ContentPost) => (
+                  <img
+                    className="submitted-avatar"
+                    alt={post.author.name}
+                    src={resolveAvatarUrl(post.author)}
+                    title={post.author.name}
+                  />
+                )
               }
             ]
           : []),
@@ -246,38 +259,16 @@ export function ContentListPage() {
           render: (post) => platformLabels[post.platform]
         },
         {
-          key: "media",
-          header: "Media",
-          width: "130px",
-          render: (post) =>
-            post.attachments.length ? (
-              <button className="media-summary" type="button" onClick={() => setMediaPost(post)}>
-                {post.attachments.slice(0, 3).map((attachment) =>
-                  attachment.type === "image" ? (
-                    <img
-                      alt={attachment.originalName}
-                      key={attachment.id}
-                      src={`${apiUrl}${attachment.publicUrl}`}
-                    />
-                  ) : (
-                    <span className="media-file-type is-small" key={attachment.id}>
-                      PDF
-                    </span>
-                  )
-                )}
-                {post.attachments.length > 3 ? (
-                  <span className="media-count">+{post.attachments.length - 3}</span>
-                ) : null}
-              </button>
-            ) : (
-              "-"
-            )
-        },
-        {
           key: "status",
           header: "Status",
-          width: "150px",
-          render: (post) => <span className={`status-pill is-${post.status}`}>{statusLabels[post.status]}</span>
+          width: "92px",
+          render: (post) => (
+            <span
+              className={`status-dot is-${post.status}`}
+              title={statusLabels[post.status]}
+              aria-label={statusLabels[post.status]}
+            />
+          )
         }
       ];
 
@@ -293,9 +284,17 @@ export function ContentListPage() {
         key: "actions",
         header: "",
         align: "right",
-        width: isAdmin ? "228px" : "96px",
+        width: isAdmin ? "272px" : "144px",
         render: (post) => (
           <div className="table-actions">
+            <button
+              className="icon-button"
+              type="button"
+              aria-label="Preview post"
+              onClick={() => setPreviewPost(post)}
+            >
+              <Eye size={18} />
+            </button>
             {isAdmin ? (
               <>
                 <button
@@ -475,25 +474,13 @@ export function ContentListPage() {
           }
         >
           <p className="confirm-copy">
-            “{deletePost.title}” and its attached media will be deleted.
+            "{deletePost.title}" and its attached media will be deleted.
           </p>
         </Modal>
       ) : null}
 
-      {mediaPost ? (
-        <MediaCarouselModal
-          title={mediaPost.title}
-          items={mediaPost.attachments.map((attachment) => ({
-            id: attachment.id,
-            type: attachment.type,
-            originalName: attachment.originalName,
-            mimeType: attachment.mimeType,
-            sourceUrl: `${apiUrl}${attachment.publicUrl}`,
-            width: attachment.width,
-            height: attachment.height
-          }))}
-          onClose={() => setMediaPost(null)}
-        />
+      {previewPost ? (
+        <PostPreviewModal post={previewPost} onClose={() => setPreviewPost(null)} />
       ) : null}
     </>
   );
