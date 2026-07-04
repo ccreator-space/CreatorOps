@@ -1,9 +1,17 @@
-import { Plus } from "lucide-react";
+import { Lightbulb, Plus } from "lucide-react";
 import toast from "react-hot-toast";
-import { useCallback, useEffect, useMemo, useState, type DragEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type DragEvent,
+  type KeyboardEvent
+} from "react";
 import { AvatarStack } from "../../components/AvatarStack";
 import { type UserSummary } from "../../lib/mock-data";
 import { useAuth } from "../auth/AuthProvider";
+import { ContentIdeaSheet, type EditableContentIdea } from "./ContentIdeaSheet";
 import { ContentSheet } from "./ContentSheet";
 
 const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -33,6 +41,10 @@ type PostsResponse = {
   data: CalendarPost[];
 };
 
+type ContentIdeasResponse = {
+  data: EditableContentIdea[];
+};
+
 type AssignmentResponse = {
   data: CalendarAssignment;
 };
@@ -40,6 +52,12 @@ type AssignmentResponse = {
 type SheetDefaults = {
   date?: string;
   userId?: string;
+};
+
+type IdeaSheetState = {
+  isOpen: boolean;
+  idea: EditableContentIdea | null;
+  initialDate?: string;
 };
 
 function LinkedInLogo() {
@@ -79,8 +97,13 @@ export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<CalendarAssignment[]>([]);
   const [posts, setPosts] = useState<CalendarPost[]>([]);
+  const [ideas, setIdeas] = useState<EditableContentIdea[]>([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetDefaults, setSheetDefaults] = useState<SheetDefaults>({});
+  const [ideaSheet, setIdeaSheet] = useState<IdeaSheetState>({
+    isOpen: false,
+    idea: null
+  });
   const [statusMessage, setStatusMessage] = useState("Loading calendar assignments.");
   const [isSavingAssignment, setIsSavingAssignment] = useState(false);
 
@@ -92,28 +115,34 @@ export function CalendarPage() {
     setStatusMessage("Loading calendar.");
 
     try {
-      const [assignmentsResponse, postsResponse] = await Promise.all([
+      const [assignmentsResponse, postsResponse, ideasResponse] = await Promise.all([
         fetch(`${apiUrl}/assignments?month=2026-07`, {
           headers: authHeaders()
         }),
         fetch(`${apiUrl}/posts?month=2026-07`, {
           headers: authHeaders()
+        }),
+        fetch(`${apiUrl}/content-ideas?month=2026-07`, {
+          headers: authHeaders()
         })
       ]);
 
-      if (!assignmentsResponse.ok || !postsResponse.ok) {
+      if (!assignmentsResponse.ok || !postsResponse.ok || !ideasResponse.ok) {
         throw new Error("Calendar data could not be loaded.");
       }
 
       const assignmentsPayload = (await assignmentsResponse.json()) as AssignmentsResponse;
       const postsPayload = (await postsResponse.json()) as PostsResponse;
+      const ideasPayload = (await ideasResponse.json()) as ContentIdeasResponse;
 
       setAssignments(assignmentsPayload.data);
       setPosts(postsPayload.data);
+      setIdeas(ideasPayload.data);
       setStatusMessage("");
     } catch {
       setAssignments([]);
       setPosts([]);
+      setIdeas([]);
       setStatusMessage("Calendar data could not be loaded from the API.");
     }
   }, [viewer?.id]);
@@ -131,12 +160,13 @@ export function CalendarPage() {
         day,
         date,
         assignments: assignments.filter((item) => item.date === date),
-        posts: posts.filter((item) => item.scheduledDate === date)
+        posts: posts.filter((item) => item.scheduledDate === date),
+        ideas: ideas.filter((item) => item.date === date)
       };
     });
-  }, [assignments, posts]);
+  }, [assignments, ideas, posts]);
 
-  const handleDrop = async (event: DragEvent<HTMLButtonElement>, date: string) => {
+  const handleDrop = async (event: DragEvent<HTMLDivElement>, date: string) => {
     event.preventDefault();
 
     if (!viewer) {
@@ -188,6 +218,10 @@ export function CalendarPage() {
         date,
         userId
       });
+      setIdeaSheet({
+        isOpen: false,
+        idea: null
+      });
       setIsSheetOpen(true);
     } catch {
       toast.error("Assignment could not be saved.");
@@ -201,7 +235,56 @@ export function CalendarPage() {
     setSheetDefaults({
       date: selectedDate ?? undefined
     });
+    setIdeaSheet({
+      isOpen: false,
+      idea: null
+    });
     setIsSheetOpen(true);
+  };
+
+  const openNewIdeaSheet = (date = selectedDate ?? new Date().toISOString().slice(0, 10)) => {
+    if (!viewer || viewer.role !== "admin") {
+      return;
+    }
+
+    setSelectedDate(date);
+    setIsSheetOpen(false);
+    setIdeaSheet({
+      isOpen: true,
+      idea: null,
+      initialDate: date
+    });
+  };
+
+  const openExistingIdeaSheet = (idea: EditableContentIdea) => {
+    setSelectedDate(idea.date);
+    setIsSheetOpen(false);
+    setIdeaSheet({
+      isOpen: true,
+      idea,
+      initialDate: idea.date
+    });
+  };
+
+  const handleDayClick = (date: string) => {
+    setSelectedDate(date);
+
+    if (viewer?.role === "admin") {
+      openNewIdeaSheet(date);
+    }
+  };
+
+  const handleDayKeyDown = (event: KeyboardEvent<HTMLDivElement>, date: string) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+
+    event.preventDefault();
+    handleDayClick(date);
   };
 
   if (!viewer) {
@@ -215,6 +298,12 @@ export function CalendarPage() {
 
         <div className="header-actions">
           <AvatarStack users={visibleUsers} />
+          {viewer.role === "admin" ? (
+            <button className="secondary-button" type="button" onClick={() => openNewIdeaSheet()}>
+              <Lightbulb size={18} />
+              Add idea
+            </button>
+          ) : null}
           <button
             className="primary-button"
             type="button"
@@ -236,15 +325,36 @@ export function CalendarPage() {
         ))}
 
         {days.map((day) => (
-          <button
+          <div
             className={`calendar-cell ${selectedDate === day.date ? "is-selected" : ""}`}
             key={day.date}
-            type="button"
+            role="gridcell"
+            tabIndex={0}
+            aria-label={`${day.date} calendar day`}
             onDragOver={(event) => event.preventDefault()}
             onDrop={(event) => handleDrop(event, day.date)}
-            onClick={() => setSelectedDate(day.date)}
+            onClick={() => handleDayClick(day.date)}
+            onKeyDown={(event) => handleDayKeyDown(event, day.date)}
           >
             <span className="day-number">{day.day}</span>
+            {day.ideas.length ? (
+              <div className="cell-ideas">
+                {day.ideas.map((idea) => (
+                  <button
+                    className="cell-idea"
+                    key={idea.id}
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openExistingIdeaSheet(idea);
+                    }}
+                  >
+                    <Lightbulb size={13} />
+                    <span>{idea.title}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {day.posts.length ? (
               <div className="cell-posts">
                 {day.posts.map((post) => (
@@ -269,7 +379,7 @@ export function CalendarPage() {
                 />
               ))}
             </div>
-          </button>
+          </div>
         ))}
       </div>
 
@@ -280,6 +390,21 @@ export function CalendarPage() {
         initialDate={sheetDefaults.date}
         initialUserId={sheetDefaults.userId}
         onClose={() => setIsSheetOpen(false)}
+        onSaved={loadCalendarData}
+        onStatusChange={setStatusMessage}
+      />
+      <ContentIdeaSheet
+        isOpen={ideaSheet.isOpen}
+        authHeaders={authHeaders}
+        idea={ideaSheet.idea}
+        initialDate={ideaSheet.initialDate}
+        canEdit={viewer.role === "admin"}
+        onClose={() =>
+          setIdeaSheet({
+            isOpen: false,
+            idea: null
+          })
+        }
         onSaved={loadCalendarData}
         onStatusChange={setStatusMessage}
       />

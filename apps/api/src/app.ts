@@ -5,6 +5,7 @@ import { currentUserMiddleware } from "./middleware/current-user.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { assignmentsRouter } from "./routes/assignments.routes.js";
 import { authPublicRouter, authRouter } from "./routes/auth.routes.js";
+import { contentIdeasRouter } from "./routes/content-ideas.routes.js";
 import { formsRouter } from "./routes/forms.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { postsRouter } from "./routes/posts.routes.js";
@@ -35,6 +36,7 @@ export function createApp() {
   app.use(currentUserMiddleware);
   app.use("/auth", authRouter);
   app.use("/assignments", assignmentsRouter);
+  app.use("/content-ideas", contentIdeasRouter);
   app.use("/users", usersRouter);
   app.use("/posts", postsRouter);
   app.use("/forms", formsRouter);

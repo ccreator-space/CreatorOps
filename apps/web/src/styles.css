@@ -426,6 +426,10 @@ button:disabled {
   padding: 0 12px;
 }
 
+.secondary-button.is-danger {
+  color: #b42318;
+}
+
 .secondary-button.is-full {
   width: 100%;
 }
@@ -485,6 +489,11 @@ button:disabled {
   background: #fbfcfb;
 }
 
+.calendar-cell:focus-visible {
+  box-shadow: inset 0 0 0 2px #1f6f5b;
+  outline: none;
+}
+
 .calendar-cell.is-selected {
   box-shadow: inset 0 0 0 2px #1f6f5b;
 }
@@ -497,6 +506,43 @@ button:disabled {
   display: grid;
   gap: 6px;
   margin-top: 12px;
+}
+
+.cell-ideas {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.cell-ideas + .cell-posts {
+  margin-top: 6px;
+}
+
+.cell-idea {
+  align-items: center;
+  background: #fff8e6;
+  border: 1px dashed #d69e00;
+  border-radius: 8px;
+  color: #7a5a00;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 6px;
+  height: 28px;
+  max-width: 100%;
+  padding: 0 8px;
+  width: fit-content;
+}
+
+.cell-idea:hover {
+  background: #fff3cc;
+}
+
+.cell-idea span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cell-post {
@@ -584,6 +630,31 @@ button:disabled {
   margin-bottom: 24px;
 }
 
+.sheet-title-row {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.sheet-title-icon {
+  align-items: center;
+  background: #fff8e6;
+  border: 1px solid #ead184;
+  border-radius: 8px;
+  color: #7a5a00;
+  display: inline-flex;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.sheet-meta {
+  color: #69766e;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: -10px 0 18px;
+}
+
 .content-form {
   display: grid;
   gap: 16px;
@@ -604,6 +675,19 @@ button:disabled {
   border-radius: 8px;
   color: #172026;
   padding: 10px 12px;
+}
+
+.content-form input[readonly],
+.content-form textarea[readonly] {
+  background: #f6f8f6;
+  color: #52605a;
+}
+
+.sheet-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 .media-list {
