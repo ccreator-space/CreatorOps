@@ -213,7 +213,7 @@ Point your domain to the `web` service. The API should not need its own public d
 - Use a strong `POSTGRES_PASSWORD`.
 - Keep `WEB_ORIGIN` equal to your real HTTPS web domain.
 - Keep `VITE_API_URL=/api` unless you intentionally expose the API on a separate domain.
-- Back up both `creatorops_postgres_data` and `creatorops_uploads`.
+- Back up both `creatorops_postgres_data_v2` and `creatorops_uploads_v2`.
 - Run `pnpm db:seed` only for local/demo data, not as a default production step.
 - Create a real admin user after deployment and rotate any temporary credentials.
 

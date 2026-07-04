@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-creatorops}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in Dokploy environment variables}
     volumes:
-      - creatorops_postgres_data:/var/lib/postgresql/data
+      - creatorops_postgres_data_v2:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -29,7 +29,7 @@ services:
       UPLOADS_DIR: /app/uploads
       WEB_ORIGIN: ${WEB_ORIGIN:?Set WEB_ORIGIN in Dokploy environment variables}
     volumes:
-      - creatorops_uploads:/app/uploads
+      - creatorops_uploads_v2:/app/uploads
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4000/health').then((res) => process.exit(res.ok ? 0 : 1)).catch(() => process.exit(1))\""]
       start_period: 60s
@@ -51,5 +51,5 @@ services:
       - "${WEB_PORT:-3000}:80"
 
 volumes:
-  creatorops_postgres_data:
-  creatorops_uploads:
+  creatorops_postgres_data_v2:
+  creatorops_uploads_v2:
